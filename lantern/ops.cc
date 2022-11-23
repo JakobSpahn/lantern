@@ -50,7 +50,7 @@ void Tensor::conv2d(const Tensor& w, const Tensor& b,
     assertm(shape.size() == w.shape.size(),
             "Input tensor and weight tensor have different dimensions");
     assertm(shape.size() == 4, "Only 4D Tensors accepted, reshape if possible");
-    assertm(b.shape.size() <= 1, "if available, bias must be 1D");
+    if (!b.empty) assertm(b.shape.size() <= 1, "if available, bias must be 1D");
 
     const size_t N = shape[0], C = shape[1], H = shape[2], W = shape[3],
                  OUT_C = w.shape[0], K_HW = w.shape[2];
@@ -58,7 +58,7 @@ void Tensor::conv2d(const Tensor& w, const Tensor& b,
 
     assertm(C == w.shape[1], "Input channels don't match with weight tensor");
     assertm(K_HW == w.shape[3], "Kernel height and width don't match");
-    assertm(OUT_C == b.shape[0], "Bias shape doesn't match output channels");
+    if (!b.empty) assertm(OUT_C == b.shape[0], "Bias shape doesn't match output channels");
 
     // zero initialize tensor with new shape (N,OUT_C,H_NEW,W_NEW)
     Tensor ret{{N, OUT_C, H_NEW, W_NEW}};
@@ -82,7 +82,7 @@ void Tensor::conv2d(const Tensor& w, const Tensor& b,
         }
     }
 
-    if (b.shape.size() == 1) {
+    if (!b.empty && b.shape.size() == 1) {
         // add bias
         for (size_t batch = 0; batch < N; ++batch) {
             for (size_t c_out = 0; c_out < OUT_C; ++c_out) {

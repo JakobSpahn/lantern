@@ -21,7 +21,7 @@ Tensor::Tensor(const float* inp, unsigned int n, const shape_t& shape)
     assertm(inp, "Input data is empty!");
 
     dat = new float[n];
-    dat = reinterpret_cast<float*>(std::memcpy(dat, inp, n));
+    dat = reinterpret_cast<float*>(std::memcpy(dat, inp, n*sizeof(float)));
     empty = false;
 }
 
@@ -31,7 +31,7 @@ Tensor::Tensor(const Tensor& rhs) {
     unsigned int n = t::mul_shape_elements(rhs.shape);
 
     dat = new float[n];
-    dat = reinterpret_cast<float*>(std::memcpy(dat, rhs.dat, n));
+    dat = reinterpret_cast<float*>(std::memcpy(dat, rhs.dat, n*sizeof(float)));
 
     shape = rhs.shape;
     empty = rhs.empty;
@@ -56,7 +56,7 @@ Tensor& Tensor::operator=(const Tensor& rhs) {
         delete dat;
     }
     dat = new float[n];
-    dat = reinterpret_cast<float*>(std::memcpy(dat, rhs.dat, n));
+    dat = reinterpret_cast<float*>(std::memcpy(dat, rhs.dat, n*sizeof(float)));
 
     shape = rhs.shape;
 
@@ -135,4 +135,12 @@ std::ostream& Tensor::print_shape(std::ostream& os) {
     }
     os << ")";
     return os;
+}
+
+const int Tensor::size() {
+    return t::mul_shape_elements(shape.begin(), shape.end());
+}
+
+const float* const Tensor::get_raw() {
+    return dat;
 }

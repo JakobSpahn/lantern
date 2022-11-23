@@ -10,13 +10,14 @@
 #define assertm(exp, msg) assert(((void)msg, exp))
 
 class Tensor {
-    float* dat = nullptr;
     bool empty = true;
 
    public:
+    float* dat = nullptr;
     shape_t shape;
 
     // constructors and destructor
+    Tensor() : shape(shape_t{}) {}
     Tensor(shape_t shape);
     Tensor(const float* inp, unsigned int n, const shape_t& shape);
     Tensor(const Tensor& rhs);
@@ -32,6 +33,8 @@ class Tensor {
     // tools
     bool isEmpty() { return empty; }
     std::ostream& print_shape(std::ostream& os);
+    const int size();
+    const float* const get_raw();
 
     // ops
     void reshape(const shape_t& new_shape);

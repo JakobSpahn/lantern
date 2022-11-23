@@ -13,7 +13,7 @@ Tensor load_npy(const std::string& path, shape_t shape) {
     std::vector<double> data;
 
     npy::LoadArrayFromNumpy(path, shape_np, fortran_order, data);
-    std::vector<float> fdata(data.begin(), data.end());
+    std::vector<float> fdata(data.begin(), data.end());  // convert to float
     return Tensor{fdata,shape};
 }
 
