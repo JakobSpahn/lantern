@@ -1,7 +1,7 @@
 #include <iostream>
 
-#include "source/tensor.h"
-#include "source/helpersp.h"
+#include "lantern/tensor.h"
+#include "lantern/helpersp.h"
 
 int main() {
     Tensor x = p::load_npy("data/five.npy",{1,28,28,1});
