@@ -33,8 +33,8 @@ class Tensor {
     // tools
     bool isEmpty() { return empty; }
     std::ostream& print_shape(std::ostream& os);
-    const int size();
-    const float* const get_raw();
+    int size() const;
+    const float* get_raw() const;
 
     // ops
     void reshape(const shape_t& new_shape);
@@ -42,7 +42,7 @@ class Tensor {
     void matmul(const Tensor& w);
     void conv2d(const Tensor& w, const Tensor& b,
                 const std::string& padding = "valid");
-    void max_pool(shape_t kernel_shape);
+    void max_pool(const shape_t& kernel_shape);
     void add(const Tensor& b);
     void relu();
     void softmax();

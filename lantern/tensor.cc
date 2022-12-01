@@ -137,10 +137,11 @@ std::ostream& Tensor::print_shape(std::ostream& os) {
     return os;
 }
 
-const int Tensor::size() {
-    return t::mul_shape_elements(shape.begin(), shape.end());
+int Tensor::size() const {
+    return std::accumulate(shape.begin(), shape.end(), 1, 
+                            std::multiplies<unsigned int>());
 }
 
-const float* const Tensor::get_raw() {
+const float* Tensor::get_raw() const {
     return dat;
 }

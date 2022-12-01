@@ -24,7 +24,7 @@ def helper_test_op(shps : list, torch_fxn, lantern_fxn, atol=1e-6, rtol=1e-3, a=
         try:
             np.testing.assert_allclose(x, y, atol=atol, rtol=rtol)
         except Exception:
-            raise Exception(f"{s} failed shape {x.shape}")
+            raise SanityCheckError(f"{s} failed shape {x.shape}")
     
     compare("forward pass", ret, out.detach().numpy(), atol=atol, rtol=rtol)
 
@@ -55,6 +55,14 @@ class TestOps(unittest.TestCase):
                                 helper_test_op([(bs,cin,11,28), (6,cin,W,W)],
                                     lambda x,w: torch.nn.functional.conv2d(x,w),
                                     lambda x,w: lantern.conv2d(x,w), atol=1e-4)
+    
+    def test_maxpool2d(self):
+        shape = (32,2,28,28)
+        for ksz in [(2,2), (4,4)]:
+            with self.subTest(kernel_size=ksz):
+                helper_test_op([shape],
+                    lambda x: torch.nn.functional.max_pool2d(x, kernel_size=ksz),
+                    lambda x: lantern.max_pool2d(x, kernel_size=ksz), rtol=1e-5)
 
 class SanityCheckError(Exception):
     pass

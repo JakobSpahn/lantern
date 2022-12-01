@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 
 #include "tensor.h"
 
@@ -98,7 +99,7 @@ void Tensor::conv2d(const Tensor& w, const Tensor& b,
     (*this) = ret;
 }
 
-void Tensor::max_pool(shape_t kernel_shape) {
+void Tensor::max_pool(const shape_t& kernel_shape) {
     assert(!empty);
     assertm(kernel_shape.size() == 2, "Kernel not 2D");
     assertm(kernel_shape[0] == kernel_shape[1],
@@ -116,7 +117,7 @@ void Tensor::max_pool(shape_t kernel_shape) {
         for (size_t c = 0; c < C; ++c) {
             for (size_t j = 0; j < H_NEW; ++j) {
                 for (size_t k = 0; k < W_NEW; ++k) {
-                    float tmp = 0;
+                    float tmp = -INFINITY;
                     for (size_t l = j * stride; l < (j + 1) * stride; ++l) {
                         for (size_t m = k * stride; m < (k + 1) * stride; ++m) {
                             const float ref = (*this)[{batch, c, l, m}];
