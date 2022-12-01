@@ -35,8 +35,7 @@ void Tensor::matmul(const Tensor& w) {
             }
         }
     }
-
-    *this = ret;
+    std::swap(*this, ret);
 }
 
 /*
@@ -95,8 +94,7 @@ void Tensor::conv2d(const Tensor& w, const Tensor& b,
             }
         }
     }
-
-    (*this) = ret;
+    std::swap(*this, ret);
 }
 
 void Tensor::max_pool(const shape_t& kernel_shape) {
@@ -131,7 +129,7 @@ void Tensor::max_pool(const shape_t& kernel_shape) {
             }
         }
     }
-    (*this) = ret;
+    std::swap(*this, ret);
 }
 
 void Tensor::add(const Tensor& b) {

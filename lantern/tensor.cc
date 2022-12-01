@@ -1,6 +1,7 @@
 #include "tensor.h"
 
 #include <algorithm>
+#include <memory>
 
 #define assertm(exp, msg) assert(((void)msg, exp))
 
@@ -10,7 +11,7 @@ If just given the shape, the tensor will zero initialize
 Tensor::Tensor(shape_t shape) : shape(shape) {
     unsigned int n = t::mul_shape_elements(shape);
 
-    dat = new float[n]();  // gets zero initialized
+    dat.reset(new float[n]());  // gets zero initialized
     empty = false;
 }
 
@@ -20,8 +21,9 @@ Tensor::Tensor(const float* inp, unsigned int n, const shape_t& shape)
             "Number of input elements don't match the specified shape");
     assertm(inp, "Input data is empty!");
 
-    dat = new float[n];
-    dat = reinterpret_cast<float*>(std::memcpy(dat, inp, n*sizeof(float)));
+    dat.reset(new float[n]);
+    std::copy(inp, inp + n, dat.get());
+
     empty = false;
 }
 
@@ -30,8 +32,8 @@ Tensor::Tensor(const Tensor& rhs) {
 
     unsigned int n = t::mul_shape_elements(rhs.shape);
 
-    dat = new float[n];
-    dat = reinterpret_cast<float*>(std::memcpy(dat, rhs.dat, n*sizeof(float)));
+    dat.reset(new float[n]);
+    std::copy(rhs.dat.get(), rhs.dat.get() + rhs.size(), dat.get());
 
     shape = rhs.shape;
     empty = rhs.empty;
@@ -42,8 +44,8 @@ Tensor::Tensor(const std::vector<float>& inp, shape_t shape) : shape(shape) {
     assertm(n == t::mul_shape_elements(shape),
             "Number of input elements don't match the specified shape");
 
-    dat = new float[n];
-    std::copy(inp.begin(), inp.end(), dat);
+    dat.reset(new float[n]);
+    std::copy(inp.begin(), inp.end(), dat.get());
     empty = false;
 }
 
@@ -52,11 +54,8 @@ Tensor& Tensor::operator=(const Tensor& rhs) {
 
     unsigned int n = t::mul_shape_elements(rhs.shape);
 
-    if (dat) {
-        delete dat;
-    }
-    dat = new float[n];
-    dat = reinterpret_cast<float*>(std::memcpy(dat, rhs.dat, n*sizeof(float)));
+    dat.reset(new float[n]);
+    std::copy(rhs.dat.get(), rhs.dat.get() + rhs.size(), dat.get());
 
     shape = rhs.shape;
 
@@ -71,11 +70,8 @@ Discards current shape
 Tensor& Tensor::operator=(const std::vector<float>& inp) {
     unsigned int n = inp.size();
 
-    if (dat) {
-        delete dat;
-    }
-    dat = new float[n];
-    dat = std::copy(inp.begin(), inp.end(), dat);
+    dat.reset(new float[n]);
+    std::copy(inp.begin(), inp.end(), dat.get());
 
     shape = shape_t{n};
 
@@ -143,5 +139,11 @@ int Tensor::size() const {
 }
 
 const float* Tensor::get_raw() const {
-    return dat;
+    return dat.get();
+}
+
+void Tensor::swap(Tensor& rhs) {
+    std::swap(dat, rhs.dat);
+    std::swap(shape, rhs.shape);
+    std::swap(empty, rhs.empty);
 }

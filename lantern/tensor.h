@@ -4,6 +4,7 @@
 #include <numeric>
 #include <ostream>
 #include <vector>
+#include <memory>
 
 #include "helperst.h"
 
@@ -13,7 +14,7 @@ class Tensor {
     bool empty = true;
 
    public:
-    float* dat = nullptr;
+    std::unique_ptr<float[]> dat{nullptr};
     shape_t shape;
 
     // constructors and destructor
@@ -22,7 +23,7 @@ class Tensor {
     Tensor(const float* inp, unsigned int n, const shape_t& shape);
     Tensor(const Tensor& rhs);
     Tensor(const std::vector<float>& inp, shape_t new_shape);
-    ~Tensor() { delete[] dat; }
+    //~Tensor() { delete[] dat; }
 
     // operators
     Tensor& operator=(const Tensor& rhs);
@@ -35,6 +36,8 @@ class Tensor {
     std::ostream& print_shape(std::ostream& os);
     int size() const;
     const float* get_raw() const;
+    void swap(Tensor& rhs);
+    friend void swap(Tensor& lhs, Tensor& rhs) { lhs.swap(rhs); }
 
     // ops
     void reshape(const shape_t& new_shape);
