@@ -28,18 +28,26 @@ def helper_test_op(shps : list, torch_fxn, lantern_fxn, atol=1e-6, rtol=1e-3, a=
     
     compare("forward pass", ret, out.detach().numpy(), atol=atol, rtol=rtol)
 
-    print("\ntesting %40r   torch/lantern fp: %.2f / %.2f ms " % (shps, torch_fp*1000, lantern_fp*1000), end="")
+    print("\ntesting %40r   torch/lantern fp: %.4f / %.4f ms " % (shps, torch_fp*1000, lantern_fp*1000), end="")
 
 class TestOps(unittest.TestCase):
 
     def test_matmul(self):
-        helper_test_op([(1,65), (65,99)], lambda x,y: x.matmul(y), lantern.matmul)
+        helper_test_op([(1,265), (265,265)], lambda x,y: x.matmul(y), lantern.matmul)
+    
+    def test_cuda_matmul(self):
+        helper_test_op([(1,265), (265,265)], lambda x,y: x.matmul(y), lantern.cuda_matmul)
 
 
     def test_simple_conv2d(self):
-        helper_test_op([(1,1,9,9), (1,1,3,3)],
+        helper_test_op([(1,1,32,32), (1,1,5,5)],
                         lambda x,y: torch.nn.functional.conv2d(x,y),
                         lambda x,y: lantern.conv2d(x,y), atol=1e-4)
+    
+    def test_cuda_conv2d(self):
+        helper_test_op([(1,1,32,32),(1,1,5,5)],
+                        lambda x,y: torch.nn.functional.conv2d(x,y),
+                        lambda x,y: lantern.cuda_conv2d(x,y), atol=1e-4)
 
     def test_biased_conv2d(self):
         C = 8
@@ -47,6 +55,7 @@ class TestOps(unittest.TestCase):
         lambda x,w,b: torch.nn.functional.conv2d(torch.nn.functional.conv2d(x,w,b),w,b),
         lambda x,w,b: lantern.conv2d(lantern.conv2d(x,w,b)[0],w,b), atol=1e-4)
 
+    @unittest.skip("takes long")
     def test_conv2d(self):
         for bs in [1,8]:
             for cin in [1,3]:
@@ -63,6 +72,13 @@ class TestOps(unittest.TestCase):
                 helper_test_op([shape],
                     lambda x: torch.nn.functional.max_pool2d(x, kernel_size=ksz),
                     lambda x: lantern.max_pool2d(x, kernel_size=ksz), rtol=1e-5)
+
+    def test_cuda_avgpool(self):
+        shape = (1,1,32,32)
+        ksz = (2,2) # cuda impl only supports this for now
+        helper_test_op([shape],
+                       lambda x: torch.nn.functional.avg_pool2d(x, kernel_size=ksz),
+                       lambda x: lantern.cuda_avgpool(x), rtol=1e-5)
 
 class SanityCheckError(Exception):
     pass

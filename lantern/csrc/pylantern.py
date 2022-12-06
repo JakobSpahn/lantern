@@ -29,12 +29,18 @@ OUTPUT_PARAMS = [POINTER(FLOATP), POINTER(UINT), POINTER(INTP), POINTER(UINT)]
 # declarations
 handle.matmul.argtypes = [*TENSOR_DATA, *TENSOR_DATA, *OUTPUT_PARAMS]
 handle.matmul.restype = c_double
+handle.cuda_matmul.argtypes = handle.matmul.argtypes
+handle.cuda_matmul.restype = c_double
 
 handle.conv2d.argtypes = [*TENSOR_DATA, *TENSOR_DATA, *TENSOR_DATA, c_bool, *OUTPUT_PARAMS]
 handle.conv2d.restype = c_double
+handle.cuda_conv2d.argtypes = handle.cuda_matmul.argtypes
+handle.cuda_conv2d.restype = c_double
 
 handle.max_pool2d.argtypes = [*TENSOR_DATA, INTP, UINT, *OUTPUT_PARAMS]
 handle.max_pool2d.restype = c_double
+handle.cuda_avgpool.argtypes = [*TENSOR_DATA, *OUTPUT_PARAMS]
+handle.cuda_avgpool.restype = c_double
 
 def numpy_to_tensor(a : np.ndarray):
     return cast(a.ctypes.data_as(FLOATP),FLOATP), a.size, cast(a.ctypes.shape_as(INT),INTP), len(a.shape)
@@ -59,10 +65,17 @@ def helper_c_wrapper(fxn, *args):
 #(num)pythonic wrapper functions
 def matmul(a : np.ndarray, b : np.ndarray):
     return helper_c_wrapper(handle.matmul, *numpy_to_tensor(a), *numpy_to_tensor(b))
+def cuda_matmul(a : np.ndarray, b : np.ndarray):
+    return helper_c_wrapper(handle.cuda_matmul, *numpy_to_tensor(a), *numpy_to_tensor(b))
 
 def conv2d(a : np.ndarray, b : np.ndarray, c : np.ndarray = np.empty(0)):
     return helper_c_wrapper(handle.conv2d, *numpy_to_tensor(a), *numpy_to_tensor(b), *numpy_to_tensor(c), (c.size != 0))
+def cuda_conv2d(a: np.ndarray, b : np.ndarray):
+    return helper_c_wrapper(handle.cuda_conv2d, *numpy_to_tensor(a), *numpy_to_tensor(b))
 
 def max_pool2d(a : np.ndarray, kernel_size : int):
     ks = np.asarray(kernel_size, dtype=np.intc)
     return helper_c_wrapper(handle.max_pool2d, *numpy_to_tensor(a), cast(ks.ctypes.data_as(INTP),INTP), ks.size)
+
+def cuda_avgpool(a : np.ndarray):
+    return helper_c_wrapper(handle.cuda_avgpool, *numpy_to_tensor(a))

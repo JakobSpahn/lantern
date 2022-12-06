@@ -138,6 +138,10 @@ int Tensor::size() const {
                             std::multiplies<unsigned int>());
 }
 
+float* Tensor::get_raw() {
+    return dat.get();
+}
+
 const float* Tensor::get_raw() const {
     return dat.get();
 }

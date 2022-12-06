@@ -2,6 +2,7 @@
 
 #include "../helpersp.h"
 #include "../tensor.h"
+#include "cudaKernels.h"
 
 void update_out_param(const Tensor& x, float** out_data, unsigned int* out_data_n, int** out_shape, unsigned int* out_shape_n) {
     float* new_data = new float[x.size()];
@@ -34,11 +35,10 @@ double matmul(const float* a_data, const unsigned int a_data_n,
     matmul(a, b);
     std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
 
-    std::chrono::duration<double> dsec = ed - st;
 
     update_out_param(a, out_data, out_data_n, out_shape, out_shape_n);
 
-    return dsec.count();
+    return (std::chrono::duration_cast<std::chrono::microseconds>(ed - st).count()) /1000000.0;
 }
 
 double conv2d(const float* a_data, const unsigned int a_data_n,
@@ -61,11 +61,11 @@ double conv2d(const float* a_data, const unsigned int a_data_n,
     conv2d(a, b, c);
     std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
 
-    std::chrono::duration<double> dsec = ed - st;
+    std::chrono::duration<double> dsec = (ed - st);
 
     update_out_param(a, out_data, out_data_n, out_shape, out_shape_n);
 
-    return dsec.count();
+    return (std::chrono::duration_cast<std::chrono::microseconds>(ed - st).count()) /1000000.0;
 }
 
 double max_pool2d(const float* a_data, const unsigned int a_data_n,
@@ -80,10 +80,71 @@ double max_pool2d(const float* a_data, const unsigned int a_data_n,
     max_pool2d(a, kernel_shape);
     std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
 
-    std::chrono::duration<double> dsec = ed - st;
 
     update_out_param(a, out_data, out_data_n, out_shape, out_shape_n);
 
-    return dsec.count();
+    return (std::chrono::duration_cast<std::chrono::microseconds>(ed - st).count()) /1000000.0;
+}
+
+double cuda_matmul(const float* a_data, const unsigned int a_data_n,
+              const int* a_shape, const unsigned int a_shape_n,
+              const float* b_data, const unsigned int b_data_n,
+              const int* b_shape, const unsigned int b_shape_n,
+              float** out_data, unsigned int* out_data_n,
+              int** out_shape, unsigned int* out_shape_n) {
+    Tensor a{a_data, a_data_n, shape_t{a_shape, a_shape + a_shape_n}};  // 
+    Tensor b{b_data, b_data_n, shape_t{b_shape, b_shape + b_shape_n}};  // 
+    Tensor c{shape_t{a.shape[0], b.shape[1]}};  // empty tensor for result of operation
+    
+    std::chrono::steady_clock::time_point st = std::chrono::steady_clock::now();
+    auto dur = gpu::matMulCuda(a.get_raw(), b.get_raw(), c.get_raw(), a.shape[1], a.shape[0], b.shape[1], b.shape[0]);
+    std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
+
+    update_out_param(c, out_data, out_data_n, out_shape, out_shape_n);
+
+    //return (std::chrono::duration_cast<std::chrono::microseconds>(ed - st).count()) /1000000.0;
+    return dur;
+}
+
+double cuda_conv2d(const float* a_data, const unsigned int a_data_n,
+              const int* a_shape, const unsigned int a_shape_n,
+              const float* b_data, const unsigned int b_data_n,
+              const int* b_shape, const unsigned int b_shape_n,
+              float** out_data, unsigned int* out_data_n,
+              int** out_shape, unsigned int* out_shape_n) {
+    Tensor a{a_data, a_data_n, shape_t{a_shape + 2, a_shape + a_shape_n}};
+    Tensor b{b_data, b_data_n, shape_t{b_shape + 2, b_shape + b_shape_n}};
+    Tensor c{shape_t{a.shape[0] - b.shape[0] + 1, a.shape[1] - b.shape[1] + 1}};
+
+    std::chrono::steady_clock::time_point st = std::chrono::steady_clock::now();
+    double dur = gpu::conv2dCuda(a.get_raw(), b.get_raw(), c.get_raw(), a.shape[1], a.shape[0], b.shape[0]);
+    std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
+
+    c.reshape({1,1,c.shape[0],c.shape[1]});
+
+    update_out_param(c, out_data, out_data_n, out_shape, out_shape_n);
+
+    // return (std::chrono::duration_cast<std::chrono::microseconds>(ed - st).count()) /1000000.0;
+    return dur;
+}
+
+double cuda_avgpool(const float* a_data, const unsigned int a_data_n,
+              const int* a_shape, const unsigned int a_shape_n,
+              float** out_data, unsigned int* out_data_n,
+              int** out_shape, unsigned int* out_shape_n) {
+    Tensor a{a_data, a_data_n, shape_t{a_shape + 2, a_shape + a_shape_n}};  // 
+    std::cout << a.shape[0] << std::endl;
+    Tensor c{shape_t{a.shape[0] / 2, a.shape[1] / 2}};  // empty tensor for result of operation
+    
+    std::chrono::steady_clock::time_point st = std::chrono::steady_clock::now();
+    auto dur = gpu::avgPoolCuda(c.get_raw(), a.get_raw(), a.shape[1], a.shape[0]);
+    std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
+
+    c.reshape({1,1,c.shape[0],c.shape[1]});
+
+    update_out_param(c, out_data, out_data_n, out_shape, out_shape_n);
+
+    //return (std::chrono::duration_cast<std::chrono::microseconds>(ed - st).count()) /1000000.0;
+    return dur;
 }
 }

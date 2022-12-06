@@ -35,6 +35,7 @@ class Tensor {
     bool isEmpty() { return empty; }
     std::ostream& print_shape(std::ostream& os);
     int size() const;
+    float* get_raw();
     const float* get_raw() const;
     void swap(Tensor& rhs);
     friend void swap(Tensor& lhs, Tensor& rhs) { lhs.swap(rhs); }
