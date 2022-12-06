@@ -171,11 +171,11 @@ void Tensor::softmax() {
 
     float sum = 0.0;
     for (size_t i = 0; i < n; i++) {
-        sum += std::expf(dat[i] - m);
+        sum += std::exp(static_cast<float>(dat[i] - m));
     }
 
-    float offset = m + std::logf(sum);
+    float offset = m + std::log(static_cast<float>(sum));
     for (size_t i = 0; i < n; i++) {
-        dat[i] = std::expf(dat[i] - offset);
+        dat[i] = std::exp(static_cast<float>(dat[i] - offset));
     }
 }
