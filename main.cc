@@ -1,12 +1,34 @@
+// clang++ --std=c++20 lantern/tensor/*.cc lantern/tensor/accel/rawcpu/*.cc -I . -o rawcpu
+#include "lantern/tensor/Tensor.h"
+#include "lantern/tensor/accel/rawcpu/CPUTensor.h"
+#include "lantern/tensor/TensorBackend.h"
+#include "lantern/tensor/Factory.h"
+#include "lantern/tensor/Shape.h"
+#include "lantern/tensor/Types.h"
+
+#include <vector>
 #include <iostream>
 
-#include "lantern/tensor.h"
-#include "lantern/helpersp.h"
-
 int main() {
-    Tensor x = p::load_npy("data/five.npy",{1,28,28,1});
-    x.print_shape(std::cout) << std::endl;
-    
+    lt::manage::setDefaultGate<lt::CPUTensor>();
 
-    return 0;
+    lt::Tensor x(lt::Tensor::fromVector(
+        std::vector<float>({1,2,3,4,5}), 
+        lt::Shape{1,5}));
+    lt::Tensor y(lt::Tensor::fromVector(
+        std::vector<float>({1,2,3,4,5,6,7,8,9,10}), 
+        lt::Shape{5,2}));
+
+    lt::Tensor z(lt::Tensor::zeros<float>(
+        lt::Shape{1,65}));
+    
+    auto res = lt::matmul(x,y);
+
+    float* el = res.buff<float>();
+    
+    std::cout << x << std::endl;
+    std::cout << y << std::endl;
+    std::cout << res << std::endl;
+    std::cout << *el << std::endl;
+    std::cout << z << std::endl;
 }
