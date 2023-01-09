@@ -1,14 +1,4 @@
-/**
- * @file Types.h
- * @author Jakob Spahn (jakob@craalse.de)
- * @brief 
- * @date 2022-12-02
- * 
- * @copyright Copyright (c) 2022
- * 
- */
-
-#include "Types.h"
+#include "lantern/tensor/Types.h"
 
 #include <string>
 #include <unordered_map>

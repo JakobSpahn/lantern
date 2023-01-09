@@ -1,26 +1,24 @@
 #include "lantern/tensor/accel/rawcpu/CPUBackend.h"
-
 #include "lantern/tensor/accel/rawcpu/CPUTensor.h"
 
 #include <memory>
-
 #include <numeric>
 #include <stdexcept>
 
 namespace lt {
 
 static data_t& get(const Tensor& t, const Shape& idx) {
-    assert(t.shape().ndim() == idx.ndim() && "Number of indices doesn't match shape of tensor");
+    assert(t.ndim() == idx.ndim() && "Number of indices doesn't match shape of tensor");
 
     size_t max_dims = idx.ndim();
-    unsigned int n = 0;
+    dim_t n = 0;
 
     #pragma unroll
-    for (size_t i = 0; i < idx.ndim(); ++i) {
+    for (dim_t i = 0; i < idx.ndim(); ++i) {
         assert(idx[i] < t.shape()[i] && "Access index out of bounds");
 
         Shape shp(t.shape());
-        if (i < (max_dims - 1)) {
+        if (i < (max_dims - 1)) [[likely]] { 
             n += idx[i] * std::accumulate(shp.get().cbegin() + i + 1, shp.get().cend(), 1, std::multiplies<dim_t>()) ;
         } else {
             n += idx[i];
@@ -70,7 +68,7 @@ Tensor CPUBackend::matmul(const Tensor& lhs, const Tensor& rhs) {
         );
     
      // actual compute
-    #pragma omp parallel for collapse(3)
+    // #pragma omp parallel for collapse(3)
     for (long long i = 0; i < M; ++i) {
         for (long long j = 0; j < P; ++j) {
             for (long long k = 0; k < N; ++k) {
@@ -107,7 +105,7 @@ Tensor CPUBackend::conv2d(const Tensor& lhs, const Tensor& f, const Tensor& b) {
         );
 
     // convolve
-    #pragma omp parallel for collapse(7)
+    // #pragma omp parallel for collapse(7)
     for (dim_t batch = 0; batch < N; ++batch) {
         for (dim_t c_out = 0; c_out < OUT_C; ++c_out) {
             for (dim_t c_in = 0; c_in < C; ++c_in) {

@@ -1,19 +1,7 @@
-/**
- * @file TensorBackend.h
- * @author Jakob Spahn (jakob@craalse.de)
- * @brief 
- * @date 2022-12-03
- * 
- * @copyright Copyright (c) 2022
- * 
- */
-
 #pragma once
 
-#include "Tensor.h"
-#include "Shape.h"
-
-// class Tensor;
+#include "lantern/tensor/Tensor.h"
+#include "lantern/tensor/Shape.h"
 
 namespace lt {
 

@@ -36,17 +36,15 @@ double matmul(const float* a_data, const unsigned int a_data_n,
               int** out_shape, unsigned int* out_shape_n) {
     lt::manage::setDefaultGate<lt::CPUTensor>();
 
-    std::vector<lt::data_t> a_dat{a_data, a_data + a_data_n};
-    std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n};
-    std::vector<lt::data_t> b_dat{b_data, b_data + b_data_n};
-    std::vector<lt::dim_t> b_sh{b_shape, b_shape + b_shape_n};
+    std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n},
+                            b_sh{b_shape, b_shape + b_shape_n};
 
-    lt::Tensor a(lt::Tensor::fromVector(a_dat, lt::Shape(a_sh)));
-    const lt::Tensor b{lt::Tensor::fromVector(b_dat, lt::Shape(b_sh))};
+    lt::Tensor a(lt::Tensor::fromBuffer(a_data, lt::Shape(a_sh)));
+    const lt::Tensor b{lt::Tensor::fromBuffer(b_data, lt::Shape(b_sh))};
 
-    std::chrono::steady_clock::time_point st = std::chrono::steady_clock::now();
+    auto st = std::chrono::steady_clock::now();
     auto res = lt::matmul(a, b);
-    std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
+    auto ed = std::chrono::steady_clock::now();
 
     std::chrono::duration<double> dsec = ed - st;
 
@@ -65,24 +63,21 @@ double conv2d(const float* a_data, const unsigned int a_data_n,
               int** out_shape, unsigned int* out_shape_n) {
     lt::manage::setDefaultGate<lt::CPUTensor>();
     
-    std::vector<float> a_dat{a_data, a_data + a_data_n};
-    std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n};
-    std::vector<float> b_dat{b_data, b_data + b_data_n};
-    std::vector<lt::dim_t> b_sh{b_shape, b_shape + b_shape_n};
-    std::vector<float> c_dat{c_data, c_data + c_data_n};
-    std::vector<lt::dim_t> c_sh{c_shape, c_shape + c_shape_n};
+    std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n}, 
+                            b_sh{b_shape, b_shape + b_shape_n},
+                            c_sh{c_shape, c_shape + c_shape_n};
 
-    lt::Tensor a(lt::Tensor::fromVector(a_dat, lt::Shape(a_sh)));
-    const lt::Tensor b{lt::Tensor::fromVector(b_dat, lt::Shape(b_sh))}; 
+    lt::Tensor a(lt::Tensor::fromBuffer(a_data, lt::Shape(a_sh)));
+    const lt::Tensor b{lt::Tensor::fromBuffer(b_data, lt::Shape(b_sh))}; 
     lt::Tensor c;
 
     if (use_c) { 
-        c = lt::Tensor{lt::Tensor::fromVector(c_dat, lt::Shape(c_sh))};
+        c = lt::Tensor{lt::Tensor::fromBuffer(c_data, lt::Shape(c_sh))};
     }
 
-    std::chrono::steady_clock::time_point st = std::chrono::steady_clock::now();
+    auto st = std::chrono::steady_clock::now();
     auto res = lt::conv2d(a, b, c);
-    std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
+    auto ed = std::chrono::steady_clock::now();
 
     std::chrono::duration<double> dsec = ed - st;
 
@@ -98,16 +93,15 @@ double max_pool2d(const float* a_data, const unsigned int a_data_n,
                   int** out_shape, unsigned int* out_shape_n) {
     lt::manage::setDefaultGate<lt::CPUTensor>();
 
-    std::vector<float> a_dat{a_data, a_data + a_data_n};
-    std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n}; 
-    std::vector<lt::dim_t> ks_dat{ks, ks + ks_n};
+    std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n}, 
+                            ks_dat{ks, ks + ks_n};
 
-    lt::Tensor a(lt::Tensor::fromVector(a_dat, lt::Shape(a_sh)));
+    lt::Tensor a(lt::Tensor::fromBuffer(a_data, lt::Shape(a_sh)));
     lt::Shape kernel_shape{ks_dat};
 
-    std::chrono::steady_clock::time_point st = std::chrono::steady_clock::now();
+    auto st = std::chrono::steady_clock::now();
     auto res = lt::max_pool2d(a, kernel_shape);
-    std::chrono::steady_clock::time_point ed = std::chrono::steady_clock::now();
+    auto ed = std::chrono::steady_clock::now();
 
     std::chrono::duration<double> dsec = ed - st;
 

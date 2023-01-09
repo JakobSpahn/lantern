@@ -1,9 +1,11 @@
 #pragma once
 
-#include <memory>
+#include "lantern/tensor/Shape.h"
+#include "lantern/tensor/Types.h"
 
-#include "Shape.h"
-#include "Types.h"
+#include <memory>
+#include <ostream>
+
 
 namespace lt {
 
@@ -116,6 +118,19 @@ class Tensor {
     }
 
     /**
+     * @brief Create Tensor from buffer. Data is copied.
+     * 
+     * @tparam T 
+     * @param buff 
+     * @param sh 
+     * @return Tensor 
+     */
+    template <typename T>
+    static Tensor fromBuffer(const T* buff, const Shape& sh) {
+        return Tensor(buff, sh, lt::dtypeMapping<T>::lt_type);
+    }
+
+    /**
      * @brief Returns a tensor filled with the scalar value 0, and the given shape.
      * 
      * @tparam T 
@@ -135,29 +150,71 @@ class Tensor {
     TensorBackend& backend() const;
 
     /**
+     * @brief Get the Gate object.
+     * 
+     * @tparam T 
+     * @return T& 
+     */
+    template <typename T>
+    T& getGate() const {
+        return *static_cast<T*>(gate_.get());
+    }
+
+    /**
+     * @brief Returns a buffer to the on-device data of the tensor.
+     * 
+     * @tparam T 
+     * @return T* pointer to the first element in the tensor
+     */
+    template <typename T>
+    T* buff() const;
+
+    /**
      * @brief Get shape of tensor.
      * 
      * @return Shape& 
      */
     const Shape& shape() const;
     
+    /**
+     * @brief Index into a view of the tensor. Returns a shallow copy of the tensor.
+     * 
+     * @param sh 
+     * @return Tensor 
+     */
     Tensor index(const Shape& sh) const; 
 
+    /**
+     * @brief Returns a human readable string representation of the tensor.
+     * 
+     * @return std::string 
+     */
     std::string toString() const;
 
-    template <typename T>
-    T& getGate() const {
-        return *static_cast<T*>(gate_.get());
-    }
-
-    template <typename T>
-    T* buff() const;
-
+    /**
+     * @brief Returns true if the tensor is empty.
+     * 
+     * @return true 
+     * @return false 
+     */
     bool isEmpty() const;
+    
+    /**
+     * @brief Returns the number of elements denoted by the tensor.
+     * 
+     * @return dim_t 
+     */
     dim_t elements() const;
+    
+    /**
+     * @brief Returns the dimensionality of the tensor.
+     * 
+     * @return dim_t 
+     */
+    dim_t ndim() const;
 };
 
-/******************** UTILITY ********************/
+/******************** COMPLIANCE ********************/
 std::ostream& operator<<(std::ostream& os, const Tensor& t);
 
 

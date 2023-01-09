@@ -1,7 +1,7 @@
 #pragma once
 
-#include "Tensor.h"
-#include "TensorGate.h"
+#include "lantern/tensor/Tensor.h"
+#include "lantern/tensor/TensorGate.h"
 
 #include <memory>
 

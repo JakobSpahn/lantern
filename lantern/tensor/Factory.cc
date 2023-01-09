@@ -1,4 +1,4 @@
-#include "Factory.h"
+#include "lantern/tensor/Factory.h"
 
 namespace lt{
 namespace manage {

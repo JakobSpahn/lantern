@@ -1,8 +1,7 @@
-#include "Tensor.h"
-#include "Factory.h"
-
-#include "TensorGate.h"
-#include "TensorBackend.h"
+#include "lantern/tensor/Tensor.h"
+#include "lantern/tensor/Factory.h"
+#include "lantern/tensor/TensorGate.h"
+#include "lantern/tensor/TensorBackend.h"
 
 #include <utility>
 #include <memory>
@@ -41,18 +40,7 @@ TensorBackend& Tensor::backend() const {
     return gate_->backend();
 }
 
-const Shape& Tensor::shape() const {
-    return gate_->shape();
-}
-
-Tensor Tensor::index(const Shape& sh) const {
-    return gate_->index(sh);
-}
-
-std::string Tensor::toString() const {
-    return gate_->toString();
-}
-
+/******************** TEMPLATE SPECIFICATIONS ********************/
 #define LT_SPECIFY_OPS(TYPE)                        \
 template <>                                         \
 TYPE* Tensor::buff() const {                        \
@@ -66,6 +54,19 @@ TYPE* Tensor::buff() const {                        \
 }
 LT_SPECIFY_OPS(float);
 
+/******************** UTILITY ********************/
+const Shape& Tensor::shape() const {
+    return gate_->shape();
+}
+
+Tensor Tensor::index(const Shape& sh) const {
+    return gate_->index(sh);
+}
+
+std::string Tensor::toString() const {
+    return gate_->toString();
+}
+
 bool Tensor::isEmpty() const {
     return shape().elements() < 1;
 }
@@ -74,7 +75,11 @@ dim_t Tensor::elements() const {
     return shape().elements();
 }
 
-/******************** UTILITY ********************/
+dim_t Tensor::ndim() const {
+    return shape().ndim();
+}
+
+/******************** COMPLIANCE ********************/
 std::ostream& operator<<(std::ostream& os, const Tensor& t) {
     os << t.toString();
     return os;

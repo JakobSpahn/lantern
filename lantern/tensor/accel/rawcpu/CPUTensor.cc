@@ -1,7 +1,5 @@
 #include "lantern/tensor/accel/rawcpu/CPUTensor.h"
-
 #include "lantern/tensor/accel/rawcpu/CPUBackend.h"
-
 #include "lantern/tensor/Types.h"
 
 #include <memory>
@@ -10,10 +8,6 @@
 #include <stdexcept>
 #include <sstream>
 #include <iterator>
-
-#include <iostream>
-
-// #include <iostream>
 
 namespace lt {
 

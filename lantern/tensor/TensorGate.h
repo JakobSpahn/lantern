@@ -1,9 +1,9 @@
 #pragma once
 
-#include "Tensor.h"
-#include "TensorBackend.h"
-#include "Shape.h"
-#include "Types.h"
+#include "lantern/tensor/Tensor.h"
+#include "lantern/tensor/TensorBackend.h"
+#include "lantern/tensor/Shape.h"
+#include "lantern/tensor/Types.h"
 
 namespace lt {
 

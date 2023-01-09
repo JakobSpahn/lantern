@@ -1,4 +1,4 @@
-#include "Shape.h"
+#include "lantern/tensor/Shape.h"
 
 #include <algorithm>
 #include <numeric>
