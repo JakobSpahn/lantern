@@ -4,6 +4,8 @@
 #include <memory>
 #include <numeric>
 #include <stdexcept>
+#include <cassert>
+#include <limits>
 
 namespace lt {
 
@@ -162,7 +164,7 @@ Tensor CPUBackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
         for (dim_t c = 0; c < C; ++c) {
             for (dim_t j = 0; j < H_NEW; ++j) {
                 for (dim_t k = 0; k < W_NEW; ++k) {
-                    float tmp = -INFINITY;
+                    float tmp = -std::numeric_limits<float>::max();
                     for (dim_t l = j * stride; l < (j + 1) * stride; ++l) {
                         for (dim_t m = k * stride; m < (k + 1) * stride; ++m) {
                             const float ref = get(lhs, {batch, c, l, m});
