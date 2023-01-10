@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <sstream>
 #include <iterator>
+#include <cassert>
 
 namespace lt {
 

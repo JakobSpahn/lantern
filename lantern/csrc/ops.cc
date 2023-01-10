@@ -1,12 +1,7 @@
 #include <chrono>
 #include <iostream>
 
-#include "lantern/tensor/Tensor.h"
-#include "lantern/tensor/accel/rawcpu/CPUTensor.h"
-#include "lantern/tensor/TensorBackend.h"
-#include "lantern/tensor/Factory.h"
-
-#include "lantern/tensor/Shape.h"
+#include "include/lantern.h"
 
 void update_out_param(const lt::Tensor& x, float** out_data, unsigned int* out_data_n, int** out_shape, unsigned int* out_shape_n) {
     float* new_data = new float[x.elements()];
@@ -21,12 +16,6 @@ void update_out_param(const lt::Tensor& x, float** out_data, unsigned int* out_d
     *out_shape_n = x.shape().ndim();
 }
 
-/*
-void matmul(lt::Tensor& a, const lt::Tensor& b) { a.matmul(b); }
-void conv2d(Tensor& a, const Tensor& b, const Tensor& c) { a.conv2d(b, c); }
-void max_pool2d(Tensor& x, const shape_t& kernel_shape) { x.max_pool(kernel_shape); }
-*/
-
 extern "C" {
 double matmul(const float* a_data, const unsigned int a_data_n,
               const int* a_shape, const unsigned int a_shape_n,
@@ -34,7 +23,7 @@ double matmul(const float* a_data, const unsigned int a_data_n,
               const int* b_shape, const unsigned int b_shape_n,
               float** out_data, unsigned int* out_data_n,
               int** out_shape, unsigned int* out_shape_n) {
-    lt::manage::setDefaultGate<lt::CPUTensor>();
+    lt::manage::setDefaultGate<lt::CUDATensor>();
 
     std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n},
                             b_sh{b_shape, b_shape + b_shape_n};
@@ -61,7 +50,7 @@ double conv2d(const float* a_data, const unsigned int a_data_n,
               const int* c_shape, const unsigned int c_shape_n, const bool use_c, 
               float** out_data, unsigned int* out_data_n,
               int** out_shape, unsigned int* out_shape_n) {
-    lt::manage::setDefaultGate<lt::CPUTensor>();
+    lt::manage::setDefaultGate<lt::CUDATensor>();
     
     std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n}, 
                             b_sh{b_shape, b_shape + b_shape_n},

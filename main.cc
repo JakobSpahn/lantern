@@ -1,10 +1,5 @@
 // clang++ --std=c++20 lantern/tensor/*.cc lantern/tensor/accel/rawcpu/*.cc -I . -o rawcpu
-#include "lantern/tensor/Tensor.h"
-#include "lantern/tensor/accel/rawcpu/CPUTensor.h"
-#include "lantern/tensor/TensorBackend.h"
-#include "lantern/tensor/Factory.h"
-#include "lantern/tensor/Shape.h"
-#include "lantern/tensor/Types.h"
+#include "include/lantern.h"
 
 #include <vector>
 #include <iostream>

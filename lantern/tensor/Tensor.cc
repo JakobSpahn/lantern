@@ -6,6 +6,8 @@
 #include <utility>
 #include <memory>
 
+#include <iostream>
+
 namespace lt {
 
 Tensor::Tensor(
@@ -16,7 +18,9 @@ Tensor::Tensor(
 
 Tensor::Tensor() : gate_(lt::manage::getDefaultGate()) {}
 
-Tensor::Tensor(Tensor&& t) : gate_(std::move(t.gate_)) {}
+// compiler uses copy elision (in most cases)
+// this will most of the time not actually be called
+Tensor::Tensor(Tensor&& t) : gate_(std::move(t.gate_)) {} 
 
 Tensor::Tensor(const Tensor& t) : gate_(t.gate_->clone()) {}
 
