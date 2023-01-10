@@ -1,13 +1,7 @@
 #include <chrono>
 #include <iostream>
 
-#include "lantern/tensor/Tensor.h"
-#include "lantern/tensor/accel/rawcpu/CPUTensor.h"
-#include "lantern/tensor/accel/cuda/CUDATensor.h"
-#include "lantern/tensor/TensorBackend.h"
-#include "lantern/tensor/Factory.h"
-
-#include "lantern/tensor/Shape.h"
+#include "include/lantern.h"
 
 void update_out_param(const lt::Tensor& x, float** out_data, unsigned int* out_data_n, int** out_shape, unsigned int* out_shape_n) {
     float* new_data = new float[x.elements()];
@@ -21,12 +15,6 @@ void update_out_param(const lt::Tensor& x, float** out_data, unsigned int* out_d
     *out_shape = new_shape;
     *out_shape_n = x.shape().ndim();
 }
-
-/*
-void matmul(lt::Tensor& a, const lt::Tensor& b) { a.matmul(b); }
-void conv2d(Tensor& a, const Tensor& b, const Tensor& c) { a.conv2d(b, c); }
-void max_pool2d(Tensor& x, const shape_t& kernel_shape) { x.max_pool(kernel_shape); }
-*/
 
 extern "C" {
 double matmul(const float* a_data, const unsigned int a_data_n,

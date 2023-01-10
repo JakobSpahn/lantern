@@ -59,8 +59,8 @@ __global__ void batched_channeled_conv2d_hw_kernel(data_t const* inp, data_t con
                                      dim_t b_s, dim_t OUT_C, dim_t IN_C, 
                                      dim_t H_OLD, dim_t W_OLD,
                                      dim_t H_NEW, dim_t W_NEW, dim_t K_HW) {
-    dim_t i{blockIdx.x * blockDim.x + threadIdx.x}; // loops through H_NEW
-    dim_t j{blockIdx.y * blockDim.y + threadIdx.y}; // loops through W_NEW
+    dim_t i{blockIdx.x * blockDim.x + threadIdx.x}; // parallel loops through H_NEW
+    dim_t j{blockIdx.y * blockDim.y + threadIdx.y}; // parallel loops through W_NEW
     
     // Do not process outside the matrix.
     // Do not forget the equal sign!

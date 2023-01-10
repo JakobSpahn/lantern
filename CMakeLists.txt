@@ -19,7 +19,8 @@ set(accel_sources lantern/tensor/accel/RuntimeCheck.cc) # this will be changed l
 set(cpu_sources lantern/tensor/accel/rawcpu/CPUBackend.cc
                 lantern/tensor/accel/rawcpu/CPUTensor.cc)
 set(cuda_sources lantern/tensor/accel/cuda/CUDATensor.cu
-                 lantern/tensor/accel/cuda/CUDABackend.cu)
+                 lantern/tensor/accel/cuda/CUDABackend.cu
+                 lantern/tensor/accel/cuda/optim/tiling/CUDATilingTensor.cu)
 
 set_source_files_properties(${cuda_sources} PROPERTIES LANGUAGE CUDA)
 #set_source_files_properties(lantern/tensor/accel/cuda/optim/CUDATilingTensor.cu PROPERTIES LANGUAGE CUDA)
@@ -56,6 +57,7 @@ set_property(TARGET ops
              PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 set_property(TARGET ops
              PROPERTY CMAKE_CUDA_COMPILE_SEPARABLE_COMPILATION ON)
+add_compile_definitions(CUDA_)
 endif()
 
 
