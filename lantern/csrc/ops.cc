@@ -62,7 +62,7 @@ double conv2d(const float* a_data, const unsigned int a_data_n,
               const int* c_shape, const unsigned int c_shape_n, const bool use_c, 
               float** out_data, unsigned int* out_data_n,
               int** out_shape, unsigned int* out_shape_n) {
-    lt::manage::setDefaultGate<lt::CPUTensor>();
+    lt::manage::setDefaultGate<lt::CUDATensor>();
     
     std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n}, 
                             b_sh{b_shape, b_shape + b_shape_n},

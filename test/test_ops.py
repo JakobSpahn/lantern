@@ -36,7 +36,7 @@ class TestOps(unittest.TestCase):
         helper_test_op([(1,65), (65,99)], lambda x,y: x.matmul(y), lantern.matmul)
 
 
-    @unittest.skip("not impl")
+    #@unittest.skip("not impl")
     def test_simple_conv2d(self):
         helper_test_op([(1,1,9,9), (1,1,3,3)],
                         lambda x,y: torch.nn.functional.conv2d(x,y),
@@ -49,7 +49,7 @@ class TestOps(unittest.TestCase):
         lambda x,w,b: torch.nn.functional.conv2d(torch.nn.functional.conv2d(x,w,b),w,b),
         lambda x,w,b: lantern.conv2d(lantern.conv2d(x,w,b)[0],w,b), atol=1e-4)
 
-    @unittest.skip("not impl")
+    #@unittest.skip("not impl")
     def test_conv2d(self):
         for bs in [1,8]:
             for cin in [1,3]:
