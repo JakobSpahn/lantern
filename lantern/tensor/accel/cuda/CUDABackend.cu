@@ -80,7 +80,7 @@ __global__ void batched_channeled_conv2d_hw_kernel(data_t const* inp, data_t con
                     }
                 }
             }
-            outp[(b*OUT_C*H_NEW*W_NEW) + (c_out*H_NEW*W_NEW) + (i*W_NEW) + j] += acc_sum;  // outp[b, c_out, i, j]
+            outp[(b*OUT_C*H_NEW*W_NEW) + (c_out*H_NEW*W_NEW) + (i*W_NEW) + j] = acc_sum;  // outp[b, c_out, i, j]
         }
     }
 }
