@@ -15,8 +15,8 @@ CUDATensor::~CUDATensor() {
 CUDATensor::CUDATensor(
     const void* dat, 
     const Shape& s, 
-    const lt::dtype dt) :
-    sh(s) {
+    const lt::dtype dt) 
+    : sh(s) {
     cudaMallocManaged(&arr_, s.elements() * sizeof(data_t));
     cudaMemcpy(arr_, dat, s.elements() * sizeof(data_t), cudaMemcpyDefault);
     cudaDeviceSynchronize();
@@ -61,6 +61,7 @@ void CUDATensor::buff(void** out) const {
 data_t* CUDATensor::data() {
     return arr_;
 }
+
 const data_t* CUDATensor::data() const {
     return arr_;
 }

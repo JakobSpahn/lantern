@@ -22,8 +22,11 @@ add_library(ops SHARED
                 lantern/tensor/Shape.cc
                 lantern/tensor/Tensor.cc
                 lantern/tensor/Types.cc
+                lantern/tensor/accel/RuntimeCheck.cc
                 lantern/tensor/accel/rawcpu/CPUBackend.cc
-                lantern/tensor/accel/rawcpu/CPUTensor.cc)
+                lantern/tensor/accel/rawcpu/CPUTensor.cc
+                lantern/tensor/accel/cuda/CUDABackend.cu
+                lantern/tensor/accel/cuda/CUDATensor.cu)
 
 add_executable(main 
                 main.cc
@@ -31,6 +34,7 @@ add_executable(main
                 lantern/tensor/Shape.cc
                 lantern/tensor/Tensor.cc
                 lantern/tensor/Types.cc
+                lantern/tensor/accel/RuntimeCheck.cc
                 lantern/tensor/accel/rawcpu/CPUBackend.cc
                 lantern/tensor/accel/rawcpu/CPUTensor.cc)
 
@@ -43,6 +47,7 @@ add_executable(cudaMain
                 lantern/tensor/Shape.cc
                 lantern/tensor/Tensor.cc
                 lantern/tensor/Types.cc
+                lantern/tensor/accel/RuntimeCheck.cc 
                 lantern/tensor/accel/cuda/CUDABackend.cu
                 lantern/tensor/accel/cuda/CUDATensor.cu)
 

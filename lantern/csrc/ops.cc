@@ -3,6 +3,7 @@
 
 #include "lantern/tensor/Tensor.h"
 #include "lantern/tensor/accel/rawcpu/CPUTensor.h"
+#include "lantern/tensor/accel/cuda/CUDATensor.h"
 #include "lantern/tensor/TensorBackend.h"
 #include "lantern/tensor/Factory.h"
 
@@ -34,7 +35,7 @@ double matmul(const float* a_data, const unsigned int a_data_n,
               const int* b_shape, const unsigned int b_shape_n,
               float** out_data, unsigned int* out_data_n,
               int** out_shape, unsigned int* out_shape_n) {
-    lt::manage::setDefaultGate<lt::CPUTensor>();
+    lt::manage::setDefaultGate<lt::CUDATensor>();
 
     std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n},
                             b_sh{b_shape, b_shape + b_shape_n};

@@ -1,5 +1,7 @@
 #include "lantern/tensor/accel/rawcpu/CPUBackend.h"
+
 #include "lantern/tensor/accel/rawcpu/CPUTensor.h"
+#include "lantern/tensor/accel/RuntimeCheck.h"
 
 #include <memory>
 #include <numeric>
@@ -49,16 +51,7 @@ Tensor CPUBackend::transpose(const Tensor& lhs, const Shape& sh) {
 }
 
 Tensor CPUBackend::matmul(const Tensor& lhs, const Tensor& rhs) {
-    assert(lhs.shape().elements() > 0 && rhs.shape().elements() > 0);
-    if (lhs.shape().ndim() != rhs.shape().ndim()) {
-        throw std::invalid_argument("Number of dimensions don't match.");
-    }
-    if (lhs.shape().ndim() != 2) {
-        throw std::invalid_argument("Tensors need to be 2D");
-    }
-    if (lhs.shape()[1] != rhs.shape()[0]) {
-        throw std::invalid_argument("Shapes don't match");
-    }
+    checkMatmulOrThrow(lhs, rhs);
 
     unsigned long long M = lhs.shape()[0], N = rhs.shape()[0], P = rhs.shape()[1];
 
@@ -83,20 +76,11 @@ Tensor CPUBackend::matmul(const Tensor& lhs, const Tensor& rhs) {
 }
 
 Tensor CPUBackend::conv2d(const Tensor& lhs, const Tensor& f, const Tensor& b) {
-    assert(lhs.shape().elements() > 0 && f.shape().elements() > 0);
-    assert(lhs.shape().ndim() == f.shape().ndim() && 
-        "Input tensor and weight tensor have different dimensions");
-    assert(lhs.shape().ndim() == 4 && 
-        "Only 4D Tensors accepted, reshape if possible");
-    if (b.shape().elements() > 0) assert(b.shape().ndim() == 1 && "if available, bias must be 1D");
+    checkConv2dOrThrow(lhs, f, b);
 
     const dim_t N = lhs.shape()[0], C = lhs.shape()[1], H = lhs.shape()[2], W = lhs.shape()[3],
                  OUT_C = f.shape()[0], K_HW = f.shape()[2];
     const dim_t H_NEW = H - K_HW + 1, W_NEW = W - K_HW + 1;
-
-    assert(C == f.shape()[1] && "Input channels don't match with weight tensor");
-    assert(K_HW == f.shape()[3] && "Kernel height and width don't match");
-    if (b.shape().elements() > 0) assert(OUT_C == b.shape()[0] && "Bias shape doesn't match output channels");
 
     // zero initialize tensor with new shape (N,OUT_C,H_NEW,W_NEW)
     // get zero initialized result tensor
@@ -126,7 +110,7 @@ Tensor CPUBackend::conv2d(const Tensor& lhs, const Tensor& f, const Tensor& b) {
         }
     }
 
-    if (b.shape().elements() > 0 && b.shape().ndim() == 1) {
+    if (!b.isEmpty() && b.shape().ndim() == 1) {
         // add bias
         for (dim_t batch = 0; batch < N; ++batch) {
             for (dim_t c_out = 0; c_out < OUT_C; ++c_out) {
@@ -143,14 +127,9 @@ Tensor CPUBackend::conv2d(const Tensor& lhs, const Tensor& f, const Tensor& b) {
 }
 
 Tensor CPUBackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
-    assert(lhs.shape().elements() > 0);
-    assert(k_sh.ndim() == 2 && "Kernel not 2D");
-    assert(k_sh[0] == k_sh[1] &&
-            "Kernel height not equal to width");
+    checkMaxPoolOrThrow(lhs, k_sh);
 
     const dim_t N = lhs.shape()[0], C = lhs.shape()[1], H = lhs.shape()[2], W = lhs.shape()[3];
-    assert((H % k_sh[0]) == 0 && (W % k_sh[0]) == 0 &&
-            "Kernel shape and input tensor width/height missmatch");
     const dim_t H_NEW = H / k_sh[0], W_NEW = W / k_sh[0];
     const dim_t stride = k_sh[0];
 
