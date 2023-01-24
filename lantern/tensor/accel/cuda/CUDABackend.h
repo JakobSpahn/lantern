@@ -9,12 +9,12 @@ class CUDABackend : public lt::TensorBackend {
     CUDABackend() = default;
     ~CUDABackend() = default;
 
-    static CUDABackend& getInstance(); 
+    static CUDABackend& getInstance();
 
     // this needs to be done better
     bool tile = false;
     bool conv_use_chw = false;
-	bool conv_fft = false;
+    bool conv_fft = false;
 
     /******************** ML Operators ********************/
     Tensor reshape(const Tensor& lhs, const Shape& sh);
