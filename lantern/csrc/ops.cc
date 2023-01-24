@@ -3,6 +3,15 @@
 
 #include "include/lantern.h"
 
+static void init() {
+    #ifndef CUDA_
+    lt::manage::setDefaultGate<lt::CPUTensor>();
+    #endif
+    #ifdef CUDA_
+    lt::manage::setDefaultGate<lt::CUDATensor>();
+    #endif
+}
+
 void update_out_param(const lt::Tensor& x, float** out_data, unsigned int* out_data_n, int** out_shape, unsigned int* out_shape_n) {
     float* new_data = new float[x.elements()];
     std::copy(x.buff<float>(), x.buff<float>() + x.elements(), new_data);
@@ -23,8 +32,7 @@ double matmul(const float* a_data, const unsigned int a_data_n,
               const int* b_shape, const unsigned int b_shape_n,
               float** out_data, unsigned int* out_data_n,
               int** out_shape, unsigned int* out_shape_n) {
-    lt::manage::setDefaultGate<lt::CUDATensor>();
-
+    init();
     std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n},
                             b_sh{b_shape, b_shape + b_shape_n};
 
@@ -50,8 +58,7 @@ double conv2d(const float* a_data, const unsigned int a_data_n,
               const int* c_shape, const unsigned int c_shape_n, const bool use_c, 
               float** out_data, unsigned int* out_data_n,
               int** out_shape, unsigned int* out_shape_n) {
-    lt::manage::setDefaultGate<lt::CUDATensor>();
-    
+    init(); 
     std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n}, 
                             b_sh{b_shape, b_shape + b_shape_n},
                             c_sh{c_shape, c_shape + c_shape_n};
@@ -80,8 +87,7 @@ double max_pool2d(const float* a_data, const unsigned int a_data_n,
                   const int* ks, const unsigned int ks_n,
                   float** out_data, unsigned int* out_data_n,
                   int** out_shape, unsigned int* out_shape_n) {
-    lt::manage::setDefaultGate<lt::CPUTensor>();
-
+    init();
     std::vector<lt::dim_t> a_sh{a_shape, a_shape + a_shape_n}, 
                             ks_dat{ks, ks + ks_n};
 

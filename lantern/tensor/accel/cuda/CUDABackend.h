@@ -11,6 +11,10 @@ class CUDABackend : public lt::TensorBackend {
 
     static CUDABackend& getInstance(); 
 
+    // this needs to be done better
+    bool tile = false;
+    bool conv_use_chw = false;
+
     /******************** ML Operators ********************/
     Tensor reshape(const Tensor& lhs, const Shape& sh);
     Tensor transpose(const Tensor& lhs, const Shape& sh);
