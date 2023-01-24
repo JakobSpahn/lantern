@@ -57,7 +57,12 @@ add_executable(cudaMain
 target_sources(ops PRIVATE ${cuda_sources})
 target_sources(benchmark PRIVATE ${cuda_sources})
 
-set_property(TARGET cudaMain 
+find_package(CUDAToolkit)
+#find_package(CUDA::cufft)
+target_link_libraries(benchmark CUDA::cufft)
+target_link_libraries(cudaMain CUDA::cufft)
+
+set_property(TARGET cudaMain
              PROPERTY CUDA_SEPARABLE_COMPILATION ON)
 set_property(TARGET cudaMain
              PROPERTY CMAKE_CUDA_COMPILE_SEPARABLE_COMPILATION ON)

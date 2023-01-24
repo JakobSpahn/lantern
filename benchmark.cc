@@ -55,6 +55,12 @@ static void bnch_conv2dchw(const lt::Tensor& x, const lt::Tensor& k, const lt::T
     bnch_conv2d(x, k, b);
     lt::CUDABackend::getInstance().conv_use_chw = false;
 }
+static void bnch_conv2dfft(const lt::Tensor& x, const lt::Tensor& k, const lt::Tensor& b) {
+	lt::CUDABackend::getInstance().conv_fft = true;
+	std::cout << "FFT: ";
+	bnch_conv2d(x, k, b);
+	lt::CUDABackend::getInstance().conv_fft = false;
+}
 
 int main() {
     lt::manage::setDefaultGate<lt::CUDATensor>();
@@ -64,8 +70,8 @@ int main() {
         auto x(lt::Tensor::randn<float>({1, sz})), 
             y(lt::Tensor::randn<float>({sz, sz}));
 
-        bnch_mm(x,y);
-        bnch_mm_tld(x,y);
+        //bnch_mm(x,y);
+        //bnch_mm_tld(x,y);
     }
 
     for(auto b_sz : {1}) {
@@ -74,9 +80,15 @@ int main() {
                 auto x(lt::Tensor::randn<float>({b_sz, 6, w, w})), 
                     y(lt::Tensor::randn<float>({c_out,6,5,5})),
                     b(lt::Tensor::randn<float>({c_out}));
-                bnch_conv2d(x,y,b);
-                bnch_conv2dchw(x,y,b);
+                //bnch_conv2d(x,y,b);
+                //bnch_conv2dchw(x,y,b);
             }
         }
     }
+	std::cout << "testing fft..." << std::endl;
+	auto x(lt::Tensor::randn<float>({1, 1, 28, 28})),
+		y(lt::Tensor::randn<float>({1,1,5,5})),
+		b(lt::Tensor::randn<float>({1}));
+	bnch_conv2d(x,y,b);
+	bnch_conv2dfft(x,y,b);
 }

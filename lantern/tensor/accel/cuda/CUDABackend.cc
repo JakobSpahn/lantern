@@ -51,11 +51,14 @@ Tensor CUDABackend::conv2d(const Tensor& lhs, const Tensor& k, const Tensor& b) 
     // zero initialize tensor with new shape (N,OUT_C,H_NEW,W_NEW)
     Tensor ret(Tensor::zeros<data_t>({N, OUT_C, H_NEW, W_NEW}));
 
-    if (!conv_use_chw) {
+    if (!conv_use_chw && !conv_fft) {
         cuda::batched_conv2d_hw(lhs, k, b, ret);
-    } else {
+    } else if (conv_use_chw){
         cuda::batched_conv2d_chw(lhs, k, b, ret);
-    }
+    } else if (!conv_use_chw && conv_fft) {
+		std::cout << "fft" << std::endl;
+		cuda::batched_conv2d_fft(lhs, k, b, ret);
+	}
 
     return ret;
 }

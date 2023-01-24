@@ -14,6 +14,7 @@ class CUDABackend : public lt::TensorBackend {
     // this needs to be done better
     bool tile = false;
     bool conv_use_chw = false;
+	bool conv_fft = false;
 
     /******************** ML Operators ********************/
     Tensor reshape(const Tensor& lhs, const Shape& sh);

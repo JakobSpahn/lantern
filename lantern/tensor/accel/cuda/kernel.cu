@@ -134,9 +134,8 @@ __global__ void batched_channeled_conv2d_chw_kernel(data_t const* inp, data_t co
 }
 
 // Conv2D FFT Kernel
-__global__ void conv2dFFTKernel(cufftComplex* mx, cufftComplex* f, cufftComplex* res, dim_t sizeMxX, dim_t sizeF){
+__global__ void conv2dFFTKernel(cufftComplex* mx, cufftComplex* f, cufftComplex* res, dim_t W, dim_t sizeF){
     int i = threadIdx.x;
-    //printf("Thread%d: Mx-X: %f, Y: %f; F-X: %f, Y: %f\n", i, mx[i].x, mx[i].y, f[i].x, f[i].y);
     res[i].x = mx[i].x * f[i].x - mx[i].y*f[i].y;
     res[i].y = mx[i].x * f[i].y + mx[i].y*f[i].x;
     __syncthreads();

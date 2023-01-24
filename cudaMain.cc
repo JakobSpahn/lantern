@@ -1,35 +1,24 @@
 // clang++ --std=c++20 lantern/tensor/*.cc lantern/tensor/accel/cuda/*.cc -I . -o cuda
 #include "include/lantern.h"
+#include "lantern/tensor/accel/cuda/CUDABackend.h"
 
 #include <iostream>
 
 int main() {
     lt::manage::setDefaultGate<lt::CUDATensor>();
 
-    lt::Tensor x(lt::Tensor::zeros<float>(
-        lt::Shape{1000000}
-    ));
-    lt::Tensor y(lt::Tensor::zeros<float>(
-        lt::Shape{1000000}
-    ));
-    lt::Tensor z(x);
+	auto x(lt::Tensor::randn<float>({1, 1, 28, 28})),
+		y(lt::Tensor::randn<float>({1,1,5,5})),
+		b(lt::Tensor::randn<float>({1}));
 
-    float* ptr_x = x.buff<float>();
-    float* ptr_y = y.buff<float>();
-    float* ptr_z = z.buff<float>();
 
-    *ptr_x = 1;
+	lt::CUDABackend::getInstance().conv_fft = true;
+	auto res = lt::conv2d(x,y,b);
+	std::cout << "res: " << res << std::endl;
+	lt::CUDABackend::getInstance().conv_fft = false;
+	auto res2 = lt::conv2d(x,y,b);
+	std::cout << "res2: " << res2 << std::endl;
 
-    std::cout << *ptr_x << std::endl;
-    std::cout << *ptr_y << std::endl;
-    std::cout << *ptr_z << std::endl;
-
-    /*
-    // test for memory leak
-    while(true) {
-        auto tmp(z);
-    }
-    */
 
     return 0;
 }

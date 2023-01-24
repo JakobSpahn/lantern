@@ -5,6 +5,9 @@
 
 #include <cassert>
 #include <cufft.h>
+#include <cuda_runtime_api.h>
+#include <numeric>
+#include <iostream>
 
 namespace lt {
 namespace cuda {
@@ -108,38 +111,94 @@ void batched_conv2d_chw(const Tensor& lhs, const Tensor& k, const Tensor& b, Ten
     cudaDeviceSynchronize();
 }
 
+static data_t& get(const Tensor& t, const Shape& idx) {
+	assert(t.ndim() == idx.ndim() && "Number of indices doesn't match shape of tensor");
+
+	size_t max_dims = idx.ndim();
+	dim_t n = 0;
+
+#pragma unroll
+	for (dim_t i = 0; i < idx.ndim(); ++i) {
+		assert(idx[i] < t.shape()[i] && "Access index out of bounds");
+
+		Shape shp(t.shape());
+		if (i < (max_dims - 1)) [[likely]] {
+			n += idx[i] * std::accumulate(shp.get().cbegin() + i + 1, shp.get().cend(), 1, std::multiplies<dim_t>()) ;
+		} else {
+			n += idx[i];
+		}
+	}
+
+	return t.getGate<CUDATensor>().data()[n];
+}
+
 void batched_conv2d_fft(const Tensor& lhs, const Tensor& k, const Tensor& b, Tensor& out) {
-    /*
+	assert(lhs.shape()[0] == lhs.shape()[1] == 1 && "only works for 2d tensors"); // for now
+	const long long H{lhs.shape()[2]},
+					W{lhs.shape()[3]},
+					K_HW{k.shape()[2]};
     //Assertion: Filter is padded with zeroes to size of MX
+	// pad the kernel
+	Tensor k_padded(Tensor::zeros<float>(Shape{k.shape()[0], k.shape()[1], H, W}));
+	for (long long i{0}; i < k.shape()[0]; ++i) {
+		for (long long j{0}; j < k.shape()[1]; ++j) {
+			for (long long l{0}; l < k.shape()[2]; ++l) {
+				for (long long m{0}; m < k.shape()[3]; ++m) {
+					const Shape idx{i,j,l,m};
+					get(k_padded, idx) = get(k, idx);
+				}
+			}
+		}
+	}
+
     //Assert Filter has unpadded size 5
-    assert(sizeF == 5);
+    assert(K_HW == 5);
 
-    int resSizeX = sizeMxX - sizeF + 1;
-    int resSizeY = sizeMxY - sizeF + 1;
+    float* inpReal = nullptr;
+    cufftReal* kernReal = nullptr;
+    cufftReal* outReal = out.getGate<CUDATensor>().data();
+    cufftComplex* inpCplx = nullptr;
+    cufftComplex* kernCplx = nullptr;
+    cufftComplex* outCplx = nullptr;
 
-    cufftReal* dev_mxR = 0;
-    cufftReal* dev_fR = 0;
-    cufftReal* dev_resR = 0;
-    cufftComplex* dev_mxC = 0;
-    cufftComplex* dev_fC = 0;
-    cufftComplex* dev_resC = 0;
+	// copy tensor to inpReal
+	cudaMallocManaged(reinterpret_cast<void **>(&inpReal), lhs.elements() * sizeof(cufftReal));
+	cudaMemcpy(inpReal, lhs.getGate<CUDATensor>().data(), lhs.elements() * sizeof(cufftReal), cudaMemcpyDefault);
 
+	// copy kernel to kernelReal
+	cudaMallocManaged(reinterpret_cast<void **>(&kernReal), k_padded.elements() * sizeof(cufftReal));
+	cudaMemcpy(kernReal, k_padded.getGate<CUDATensor>().data(), k_padded.elements() * sizeof(cufftReal), cudaMemcpyDefault);
 
-    // CUFFT plan  
-    cufftHandle planMx;
-    cufftHandle planRes;
-    cufftPlan2d(&planMx, sizeMxX, sizeMxY, CUFFT_R2C);
-    cufftPlan2d(&planRes, sizeMxX, sizeMxY, CUFFT_C2R);
+	// allocate the rest
+	cudaMalloc(reinterpret_cast<void **>(&inpCplx), lhs.elements() * sizeof(cufftComplex));
+	cudaMalloc(reinterpret_cast<void **>(&kernCplx), k_padded.elements() * sizeof(cufftComplex));
+	cudaMalloc(reinterpret_cast<void **>(&outCplx), out.elements() * sizeof(cufftComplex));
+
+    // CUFFT plan to transform the matrices between real and complex
+    cufftHandle inpPlan;
+    cufftHandle outPlan;
+    cufftPlan2d(&inpPlan, W, H, CUFFT_R2C);  // real to complex
+    cufftPlan2d(&outPlan, W, H, CUFFT_C2R);  // complex to real
      
     // Transform signal and filter
-    cufftExecR2C(planMx, (cufftReal *)dev_mxR, (cufftComplex *)dev_mxC);
-    cufftExecR2C(planMx, (cufftReal *)dev_fR, (cufftComplex *)dev_fC);
+    cufftExecR2C(inpPlan, inpReal, inpCplx);
+    cufftExecR2C(inpPlan, kernReal, kernCplx);
 
-    conv2dFFTKernel<<<1, sizeMxX*sizeMxY>>>(dev_mxC, dev_fC, dev_resC, sizeMxX, 5);
+    conv2dFFTKernel<<<1, H * W>>>(inpCplx, kernCplx, outCplx, W, 5);
+	cudaDeviceSynchronize();
 
     // Transform signal back
-    cufftExecC2R(planRes, (cufftComplex *)dev_resC, (cufftReal *)dev_resR);
-    */
+    cufftExecC2R(outPlan, outCplx, outReal);
+
+	cufftDestroy(inpPlan);
+	cufftDestroy(outPlan);
+
+	cudaFree(inpReal);
+	cudaFree(kernReal);
+
+	cudaFree(inpCplx);
+	cudaFree(kernCplx);
+	cudaFree(outCplx);
 }
 }  // namespace cuda
 }  // namespace lt
