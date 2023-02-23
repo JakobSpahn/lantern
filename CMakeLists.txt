@@ -14,6 +14,8 @@ add_subdirectory(./onnx)
 
 find_package(CUDA)
 
+
+set(inference_sources lantern/inference/Graph.cc)
 set(core_sources lantern/tensor/Factory.cc
                 lantern/tensor/Shape.cc
                 lantern/tensor/Tensor.cc
@@ -43,6 +45,14 @@ add_executable(main
                 ${cpu_sources})
 
 
+add_executable(mainInference
+                mainInference.cc
+                ${core_sources}
+                ${accel_sources}
+                ${cpu_sources}
+                ${inference_sources}
+                )
+
 if(CUDA_FOUND)
 enable_language(CUDA)
 
@@ -69,5 +79,6 @@ endif()
 #target_link_libraries(ops PRIVATE OpenMP::OpenMP_CXX)
 
 target_link_libraries(cudaMain PRIVATE onnx)
+target_link_libraries(mainInference PRIVATE onnx)
 
 include_directories(${CMAKE_SOURCE_DIR})
