@@ -26,6 +26,13 @@ class Shape {
     ~Shape() = default;
 
     /**
+     * @brief Add a new dimension to the end of the shape.
+     * 
+     * @param dim new dimension
+     */
+    void addDim(dim_t dim);
+
+    /**
      * @brief Construct a new Shape object via a vector.
      * 
      * @param d vector containing the dimensions
