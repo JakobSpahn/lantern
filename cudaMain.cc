@@ -2,6 +2,8 @@
 #include "include/lantern.h"
 
 #include <iostream>
+#include <onnx/onnx_pb.h>
+#include <onnx/onnx-operators_pb.h>
 
 int main() {
     lt::manage::setDefaultGate<lt::CUDATensor>();

@@ -9,6 +9,9 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED TRUE)
 
+
+add_subdirectory(./onnx)
+
 find_package(CUDA)
 
 set(core_sources lantern/tensor/Factory.cc
@@ -20,7 +23,8 @@ set(cpu_sources lantern/tensor/accel/rawcpu/CPUBackend.cc
                 lantern/tensor/accel/rawcpu/CPUTensor.cc)
 set(cuda_sources lantern/tensor/accel/cuda/CUDATensor.cu
                  lantern/tensor/accel/cuda/CUDABackend.cu
-                 lantern/tensor/accel/cuda/optim/tiling/CUDATilingTensor.cu)
+                 #lantern/tensor/accel/cuda/optim/tiling/CUDATilingTensor.cu
+                 )
 
 set_source_files_properties(${cuda_sources} PROPERTIES LANGUAGE CUDA)
 #set_source_files_properties(lantern/tensor/accel/cuda/optim/CUDATilingTensor.cu PROPERTIES LANGUAGE CUDA)
@@ -63,5 +67,7 @@ endif()
 
 #find_package(OpenMP REQUIRED)
 #target_link_libraries(ops PRIVATE OpenMP::OpenMP_CXX)
+
+target_link_libraries(cudaMain PRIVATE onnx)
 
 include_directories(${CMAKE_SOURCE_DIR})
