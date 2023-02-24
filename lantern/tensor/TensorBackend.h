@@ -17,6 +17,8 @@ class TensorBackend {
     virtual Tensor conv2d(const Tensor& lhs, const Tensor& k, const Tensor& b) = 0;
     virtual Tensor max_pool2d(const Tensor& lhs, const Shape& k_sh) = 0;
     virtual Tensor add(const Tensor& lhs, const Tensor& rhs) = 0;
+    virtual Tensor relu(const Tensor& lhs) = 0;
+    virtual Tensor softmax(const Tensor& lhs) = 0;
 };
 
 }  // namespace lt

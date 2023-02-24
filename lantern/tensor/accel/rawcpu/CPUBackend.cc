@@ -183,4 +183,14 @@ Tensor CPUBackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
 }
 
 
+Tensor CPUBackend::relu(const Tensor& lhs) {
+    assert(0 && "not implemented");
+    return Tensor();
+}
+
+Tensor CPUBackend::softmax(const Tensor& lhs) {
+    assert(0 && "not implemented");
+    return Tensor();
+}
+
 }  // namespace lt

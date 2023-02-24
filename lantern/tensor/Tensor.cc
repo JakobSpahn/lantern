@@ -114,4 +114,12 @@ Tensor add(const Tensor& lhs, const Tensor& rhs) {
     return lhs.backend().add(lhs, rhs);
 }
 
+Tensor softmax(const Tensor& lhs) {
+    return lhs.backend().softmax(lhs);
+}
+
+Tensor relu(const Tensor& lhs) {
+    return lhs.backend().relu(lhs);
+}
+
 }  // namespace lt

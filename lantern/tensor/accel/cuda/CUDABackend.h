@@ -18,6 +18,9 @@ class CUDABackend : public lt::TensorBackend {
     Tensor conv2d(const Tensor& lhs, const Tensor& k, const Tensor& b);
     Tensor max_pool2d(const Tensor& lhs, const Shape& k_sh);
     Tensor add(const Tensor& lhs, const Tensor& rhs);
+    Tensor relu(const Tensor& lhs);
+    Tensor softmax(const Tensor& lhs);
 };
+
 
 }  // namespace lt

@@ -173,4 +173,16 @@ Tensor CUDABackend::add(const Tensor& lhs, const Tensor& rhs) {
     return Tensor();
 }
 
+// TODO: 
+Tensor CUDABackend::relu(const Tensor& lhs) {
+    assert(0 && "not implemented");
+    return Tensor();
+}
+
+// TODO: 
+Tensor CUDABackend::softmax(const Tensor& lhs) {
+    assert(0 && "not implemented");
+    return Tensor();
+}
+
 }
