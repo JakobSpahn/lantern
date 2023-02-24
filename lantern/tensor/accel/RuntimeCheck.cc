@@ -5,6 +5,24 @@ namespace lt {
 #define EMPTY "Tensors can't be empty"
 #define SHP "Shapes don't match"
 
+void checkAddOrThrow(const Tensor& a, const Tensor& b) {
+    if (a.isEmpty() || b.isEmpty()) {
+        throw std::invalid_argument(EMPTY);
+    }
+
+    if (a.shape().ndim() != b.shape().ndim()) {
+        throw std::invalid_argument(SHP);
+    }
+
+    if (a.shape().ndim() != 2) {
+        throw std::invalid_argument("Tensors need to be 2D");
+    }
+
+    if (a.shape()[0] != b.shape()[0] || a.shape()[1] != b.shape()[1]) {
+        throw std::invalid_argument(SHP);
+    }
+}
+
 void checkMatmulOrThrow(const Tensor& a, const Tensor& b) {
     if (a.isEmpty() || b.isEmpty()) {
         throw std::invalid_argument(EMPTY);
