@@ -140,7 +140,7 @@ Tensor CPUBackend::add(const Tensor& lhs, const Tensor& rhs) {
 
     for (long long i = 0; i < M; ++i) {
         for (long long j = 0; j < N; ++j) {
-            get(ret, {i, j}) += get(rhs, {i, j});
+            get(ret, {i, j}) = get(lhs, {i, j}) + get(rhs, {i, j});
         }
     }
 
