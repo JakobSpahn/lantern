@@ -7,6 +7,7 @@
 #include <numeric>
 #include <stdexcept>
 #include <cassert>
+#include <cmath>
 #include <limits>
 
 namespace lt {
@@ -183,13 +184,41 @@ Tensor CPUBackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
 }
 
 
+// TODO: tensor values has not to be of type float (std::max(x, 0.0f))
 Tensor CPUBackend::relu(const Tensor& lhs) {
-    assert(0 && "not implemented");
-    return Tensor();
+    checkReluOrThrow(lhs);
+
+    // get zero initialized result tensor
+    auto ptr = lhs.getGate<lt::CPUTensor>().data();
+    Tensor ret(
+        Tensor::zeros<std::remove_reference_t<decltype(ptr)>::element_type>(lhs.shape())
+    );
+
+    if (lhs.shape().ndim() == 2) {
+        unsigned long long M = lhs.shape()[0], N = lhs.shape()[1];
+        for (long long i = 0; i < M; i++) {
+            for (long long j = 0; j < N; j++) {
+                get(ret, {i, j}) = std::max(get(lhs, {i, j}), 0.0f);
+            }
+        }
+    } else {
+        unsigned long long M = lhs.shape()[0], N = lhs.shape()[1], P = lhs.shape()[2], Q = lhs.shape()[3];
+        for (long long i = 0; i < M; i++) {
+            for (long long j = 0; j < N; j++) {
+                for (long long k = 0; k < P; k++) {
+                    for (long long l = 0; l < Q; l++) {
+                        get(ret, {i, j, k, l}) = std::max(get(lhs, {i, j, k, l}), 0.0f);
+                    }
+                }
+            }
+        }
+    }
+
+    return ret;
 }
 
 Tensor CPUBackend::softmax(const Tensor& lhs) {
-    assert(0 && "not implemented");
+    checkSoftmaxOrThrow(lhs);
     return Tensor();
 }
 

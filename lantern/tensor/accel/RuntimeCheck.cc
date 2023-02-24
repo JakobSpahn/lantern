@@ -80,4 +80,21 @@ void checkMaxPoolOrThrow(const Tensor& a, const Shape& k_sh) {
         throw std::invalid_argument("Kernel shape and input tensor width/height missmatch");
     }
 }
+
+void checkReluOrThrow(const Tensor& a) {
+    if (a.isEmpty()) {
+        throw std::invalid_argument(EMPTY);
+    }
+
+    if (a.shape().ndim() != 2 && a.shape().ndim() != 4) {
+        throw std::invalid_argument(SHP);
+    }
+}
+
+void checkSoftmaxOrThrow(const Tensor& a) {
+    if (a.isEmpty()) {
+        throw std::invalid_argument(EMPTY);
+    }
+}
+
 }  // namespace lt
