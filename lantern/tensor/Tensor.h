@@ -38,6 +38,9 @@ class Tensor {
     Tensor(const void* dat, const Shape& s, lt::dtype dt);
 
  public:
+    // Name variable of the tensor
+    std::string name;
+
     ~Tensor() = default;
 
     /**
