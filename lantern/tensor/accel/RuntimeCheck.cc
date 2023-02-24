@@ -1,4 +1,5 @@
 #include "lantern/tensor/accel/RuntimeCheck.h"
+#include "iostream"
 
 namespace lt {
 
@@ -92,6 +93,7 @@ void checkReluOrThrow(const Tensor& a) {
 }
 
 void checkSoftmaxOrThrow(const Tensor& a) {
+
     if (a.isEmpty()) {
         throw std::invalid_argument(EMPTY);
     }
@@ -100,7 +102,7 @@ void checkSoftmaxOrThrow(const Tensor& a) {
         throw std::invalid_argument("Tensor not 2D");
     }
 
-    if (a.shape()[1] != 1) {
+    if (a.shape()[0] != 1) {
         throw std::invalid_argument("Softmax only applicable to vector");
     }
 }

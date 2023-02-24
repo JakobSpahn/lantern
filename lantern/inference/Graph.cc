@@ -111,6 +111,7 @@ void executeGraph(std::string modelPath, std::string imagePath)
         }
 
         std::string op_name = nd_proto.op_type();
+        std::cout << "Operation: " << op_name << std::endl; 
         if (op_name == "Conv")
         {
             ret = lt::conv2d(
@@ -118,9 +119,9 @@ void executeGraph(std::string modelPath, std::string imagePath)
             );
         } else if (op_name == "Relu")
         {
-            //ret = relu(
-            //    *collector[inp[0]]
-            //);
+            ret = lt::relu(
+                *collector[inp[0]]
+            );
         } else if (op_name == "MaxPool")
         {
             lt::Shape kernel_shape;
@@ -144,14 +145,15 @@ void executeGraph(std::string modelPath, std::string imagePath)
             );
         } else if (op_name == "Add")
         {
+            *collector[inp[1]] = lt::reshape(*collector[inp[1]], lt::Shape({1, collector[inp[1]]->shape()[0]}));
             ret = lt::add(
               *collector[inp[0]], *collector[inp[1]]
             );
         } else if (op_name == "Softmax")
         {
-            //ret = softmax(
-            //    *collector[inp[0]]
-            //);
+            ret = lt::softmax(
+                *collector[inp[0]]
+            );
         } else if (op_name == "Reshape")
         {   
             lt::Shape new_shape;
@@ -166,4 +168,7 @@ void executeGraph(std::string modelPath, std::string imagePath)
         }
         collector[nd_proto.output()[0]] = &ret;
     }
+
+    std::cout << "Ergebnis:" << std::endl;
+    std::cout << ret << std::endl;
 }

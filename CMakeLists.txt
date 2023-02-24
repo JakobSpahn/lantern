@@ -12,6 +12,9 @@ set(CMAKE_CUDA_STANDARD_REQUIRED TRUE)
 
 add_subdirectory(./onnx)
 
+find_package( OpenCV REQUIRED )
+include_directories( ${OpenCV_INCLUDE_DIRS} )
+
 find_package(CUDA)
 
 
@@ -79,6 +82,6 @@ endif()
 #target_link_libraries(ops PRIVATE OpenMP::OpenMP_CXX)
 
 target_link_libraries(cudaMain PRIVATE onnx)
-target_link_libraries(mainInference PRIVATE onnx)
+target_link_libraries(mainInference PRIVATE onnx ${OpenCV_LIBS})
 
 include_directories(${CMAKE_SOURCE_DIR})

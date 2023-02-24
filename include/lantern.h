@@ -5,6 +5,7 @@
 #include "lantern/tensor/TensorBackend.h"
 #include "lantern/tensor/Factory.h"
 #include "lantern/tensor/Shape.h"
+#include "lantern/inference/Graph.h"
 
 #ifdef CUDA_
 #include "lantern/tensor/accel/cuda/CUDATensor.h"
