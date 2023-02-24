@@ -144,9 +144,9 @@ void executeGraph(std::string modelPath, std::string imagePath)
             );
         } else if (op_name == "Add")
         {
-            //ret = add(
-            //    *collector[inp[0]], *collector[inp[1]]
-            //);
+            ret = lt::add(
+              *collector[inp[0]], *collector[inp[1]]
+            );
         } else if (op_name == "Softmax")
         {
             //ret = softmax(

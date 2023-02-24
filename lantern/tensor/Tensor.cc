@@ -109,4 +109,9 @@ Tensor conv2d(const Tensor& lhs, const Tensor& k, const Tensor& b) {
 Tensor max_pool2d(const Tensor& lhs, const Shape& k_sh) {
     return lhs.backend().max_pool2d(lhs, k_sh);
 }
+
+Tensor add(const Tensor& lhs, const Tensor& rhs) {
+    return lhs.backend().add(lhs, rhs);
+}
+
 }  // namespace lt

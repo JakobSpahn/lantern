@@ -126,6 +126,27 @@ Tensor CPUBackend::conv2d(const Tensor& lhs, const Tensor& f, const Tensor& b) {
     return ret;
 }
 
+Tensor CPUBackend::add(const Tensor& lhs, const Tensor& rhs) {
+    checkAddOrThrow(lhs, rhs);
+
+    unsigned long long M = lhs.shape()[0], N = lhs.shape()[1];
+
+    // get zero initialized result tensor
+    auto ptr = lhs.getGate<lt::CPUTensor>().data();
+    Tensor ret(
+        Tensor::zeros<std::remove_reference_t<decltype(ptr)>::element_type>(
+            Shape{M, N})
+    );
+
+    for (long long i = 0; i < M; ++i) {
+        for (long long j = 0; j < N; ++j) {
+            get(ret, {i, j}) += get(rhs, {i, j});
+        }
+    }
+
+    return ret;
+}
+
 Tensor CPUBackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
     checkMaxPoolOrThrow(lhs, k_sh);
 

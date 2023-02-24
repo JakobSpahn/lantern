@@ -165,4 +165,12 @@ Tensor CUDABackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
     assert(0 && "not implemented");
     return Tensor();
 }
+
+// TODO: Not yet implemented
+Tensor CUDABackend::add(const Tensor& lhs, const Tensor& rhs) {
+    checkAddOrThrow(lhs, rhs);
+    assert(0 && "not implemented");
+    return Tensor();
+}
+
 }
