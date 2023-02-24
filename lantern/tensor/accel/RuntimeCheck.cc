@@ -95,6 +95,14 @@ void checkSoftmaxOrThrow(const Tensor& a) {
     if (a.isEmpty()) {
         throw std::invalid_argument(EMPTY);
     }
+
+    if (a.shape().ndim() != 2) {
+        throw std::invalid_argument("Tensor not 2D");
+    }
+
+    if (a.shape()[1] != 1) {
+        throw std::invalid_argument("Softmax only applicable to vector");
+    }
 }
 
 }  // namespace lt

@@ -219,7 +219,40 @@ Tensor CPUBackend::relu(const Tensor& lhs) {
 
 Tensor CPUBackend::softmax(const Tensor& lhs) {
     checkSoftmaxOrThrow(lhs);
-    return Tensor();
+
+    unsigned long long M = lhs.shape()[0], N = lhs.shape()[1];
+
+    // get zero initialized result tensor
+    auto ptr = lhs.getGate<lt::CPUTensor>().data();
+    Tensor ret(
+        Tensor::zeros<std::remove_reference_t<decltype(ptr)>::element_type>(lhs.shape())
+    );
+
+    float tmp = -std::numeric_limits<float>::max();
+
+    for (long long i = 0; i < M; i++) {
+        for (long long j = 0; j < N; j++) {
+            if (get(lhs, {i, j}) > tmp) {
+                tmp = get(lhs, {i, j});
+            }
+        }
+    }
+
+    float sum = 0;
+    for (long long i = 0; i < M; i++) {
+        for (long long j = 0; j < N; j++) {
+            sum += std::exp(get(lhs, {i, j}) - tmp);
+        }
+    }
+
+    float offset = tmp + std::log(sum);
+    for (long long i = 0; i < M; i++) {
+        for (long long j = 0; j < N; j++) {
+            get(ret, {i, j}) = std::exp(get(lhs, {i, j}) - offset);
+        }
+    }
+
+    return ret;
 }
 
 }  // namespace lt
