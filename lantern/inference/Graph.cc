@@ -94,7 +94,6 @@ void Graph::executeGraph(std::string imagePath)
     model.ParseFromIstream(&in);
     in.close();
 
-    lt::manage::setDefaultGate<lt::CPUTensor>();
     std::map<std::string, lt::Tensor*> collector;
     getInput(model, collector);
     getWeights(model, collector);

@@ -4,6 +4,7 @@
 #include <iostream>
 
 int main() {
+    lt::manage::setDefaultGate<lt::CPUTensor>();
     Graph g("../model/model.onnx");
     g.executeGraph("../mnist/testSample/img_1.jpg");
     //executeGraph("../model/model.onnx","../mnist/testSample/img_1.jpg");
