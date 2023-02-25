@@ -11,10 +11,6 @@ namespace lt {
 Shape::Shape(std::vector<dim_t> d): dims_(std::move(d)) {}
 Shape::Shape(std::initializer_list<dim_t> d): Shape(std::vector<dim_t>(d)) {}
 
-void Shape::addDim(dim_t dim) {
-    dims_.push_back(dim);
-}
-
 void Shape::checkDimsOrThrow(const size_t dim) const {
     if(dim > ndim() - 1) {
         std::stringstream ss;

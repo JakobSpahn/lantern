@@ -10,7 +10,7 @@ void Graph::getInput(onnx::ModelProto &model, std::map<std::string, lt::Tensor*>
 {
     for(auto& in : model.graph().input())
     {        
-        lt::Shape dims;
+        std::vector<lt::dim_t> dims;
         if(in.type().has_tensor_type())
         {
             if(in.type().tensor_type().has_shape())
@@ -18,11 +18,11 @@ void Graph::getInput(onnx::ModelProto &model, std::map<std::string, lt::Tensor*>
                 auto in_dims = in.type().tensor_type().shape().dim();
                 for(auto& d : in_dims)
                 {   
-                    dims.addDim(d.dim_value());
+                    dims.push_back(d.dim_value());
                 }
                 // Set batch size = 1
                 dims[0] = 1;
-                lt::Tensor* t = new lt::Tensor(lt::Tensor::zeros<float>(dims));
+                lt::Tensor* t = new lt::Tensor(lt::Tensor::zeros<float>(lt::Shape(dims)));
                 t->name = in.name();
                 collector[t->name] = t;
             }
@@ -33,16 +33,16 @@ void Graph::getInput(onnx::ModelProto &model, std::map<std::string, lt::Tensor*>
 void Graph::getWeights(onnx::ModelProto &model, std::map<std::string, lt::Tensor*> &collector)
 {
     for (auto& info : model.graph().initializer()) {
-        lt::Shape dims;
+        std::vector<lt::dim_t> dims;
         for (auto& dim : info.dims()) {
-            dims.addDim(dim);
+            dims.push_back(dim);
         }
         if (info.data_type() == onnx::TensorProto_DataType_FLOAT) 
         {
             lt::Tensor *t = new lt::Tensor(
                 lt::Tensor::fromBuffer(
                     (float *) info.raw_data().data(),
-                    dims
+                    lt::Shape(dims)
                 )
             );
             t->name = info.name();
@@ -59,7 +59,7 @@ void Graph::getWeights(onnx::ModelProto &model, std::map<std::string, lt::Tensor
             lt::Tensor* t = new lt::Tensor(
                 lt::Tensor::fromBuffer(
                     data,
-                    dims
+                    lt::Shape(dims)
                 )
             );
             t->name = info.name();
@@ -123,11 +123,11 @@ void Graph::executeGraph(std::string imagePath)
             );
         } else if (op_name == "MaxPool")
         {
-            lt::Shape kernel_shape;
+            std::vector<lt::dim_t> kernel_shape;
             for (const auto& attr : nd_proto.attribute()) {
                 if (attr.name() == "kernel_shape") {
                     for (int i = 0; i < attr.ints_size(); i++) {
-                        kernel_shape.addDim(
+                        kernel_shape.push_back(
                             attr.ints(i)
                         );
                     }
@@ -135,7 +135,7 @@ void Graph::executeGraph(std::string imagePath)
             }
             ret = lt::max_pool2d(
                 *collector[inp[0]],
-                kernel_shape
+                lt::Shape(kernel_shape)
             );
         } else if (op_name == "MatMul")
         {
@@ -155,13 +155,13 @@ void Graph::executeGraph(std::string imagePath)
             );
         } else if (op_name == "Reshape")
         {   
-            lt::Shape new_shape;
+            std::vector<lt::dim_t> new_shape;
             float* buffer = collector[inp[1]]->buff<float>();
             for (int i = 0; i < collector[inp[1]]->elements(); i++) {
-                new_shape.addDim(static_cast<int64_t>(buffer[i]));
+                new_shape.push_back(static_cast<int64_t>(buffer[i]));
             }
             ret = lt::reshape(
-                *collector[inp[0]], new_shape
+                *collector[inp[0]], lt::Shape(new_shape)
             );
             
         }
