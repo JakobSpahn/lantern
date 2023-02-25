@@ -97,6 +97,18 @@ __global__ void add_kernel(data_t const* inp_1, data_t const* inp_2, data_t* out
     outp[row*W+col] = inp_1[row*W+col] + inp_2[row*W+col];
 }
 
+__global__ void relu_kernel(data_t const* inp, data_t* outp, dim_t n) {
+    dim_t i{blockIdx.x * blockDim.x + threadIdx.x};
+
+    if (i < n) {
+        if (inp[i] < 0) {
+            outp[i] = 0;
+        } else {
+            outp[i] = inp[i];
+        }
+    }
+}
+
 /******************** ML Operators ********************/
 Tensor CUDABackend::reshape(const Tensor& lhs, const Shape& sh) {
     assert(0 && "not implemented");
@@ -212,8 +224,30 @@ Tensor CUDABackend::add(const Tensor& lhs, const Tensor& rhs) {
 
 // TODO: 
 Tensor CUDABackend::relu(const Tensor& lhs) {
-    assert(0 && "not implemented");
-    return Tensor();
+    checkReluOrThrow(lhs);
+
+    auto ptr = lhs.getGate<lt::CUDATensor>().data();
+    using PType = std::remove_pointer<decltype(ptr)>::type;
+    Tensor ret(
+        Tensor::zeros<PType>(
+            lhs.shape())
+    );
+    
+    dim3 threads_per_block(BLOCK_DIM);
+    dim3 blocks_per_grid(1);
+    blocks_per_grid.x = std::ceil(static_cast<double>(lhs.elements()) /
+                            static_cast<double>(threads_per_block.x));
+    DBG_PRINT(blocks_per_grid, threads_per_block);
+
+    relu_kernel<<<blocks_per_grid, threads_per_block>>>(
+        lhs.getGate<CUDATensor>().data(),
+        ret.getGate<CUDATensor>().data(),
+        lhs.elements()
+    );
+
+    cudaDeviceSynchronize();
+
+    return ret;
 }
 
 // TODO: 

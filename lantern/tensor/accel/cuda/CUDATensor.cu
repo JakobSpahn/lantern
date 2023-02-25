@@ -4,6 +4,7 @@
 
 #include <string>
 #include <cassert>
+#include <sstream>
 #include <memory>
 
 namespace lt {
@@ -32,10 +33,12 @@ void CUDATensor::assign(const Tensor& t) {
 
 Tensor CUDATensor::copy() {
     assert(0 && "not implemented");
+    return Tensor();
 }
 
 Tensor CUDATensor::shallowCopy() {
     assert(0 && "not implemented");
+    return Tensor();
 }
 
 TensorBackend& CUDATensor::backend() const {
@@ -48,6 +51,7 @@ const Shape& CUDATensor::shape() const {
 
 Tensor CUDATensor::index(const Shape& sh) const {
     assert(0 && "not implemented");
+    return Tensor();
 }
 
 std::string CUDATensor::toString() const {
