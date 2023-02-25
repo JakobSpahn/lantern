@@ -85,6 +85,18 @@ __global__ void batched_channeled_conv2d_hw_kernel(data_t const* inp, data_t con
     }
 }
 
+
+__global__ void add_kernel(data_t const* inp_1, data_t const* inp_2, data_t* outp, dim_t H, dim_t W) {
+    dim_t col{blockIdx.x * blockDim.x + threadIdx.x}; 
+    dim_t row{blockIdx.y * blockDim.y + threadIdx.y}; 
+
+    if ((row >= H) || (col >= W)) {
+        return;
+    }
+
+    outp[row*W+col] = inp_1[row*W+col] + inp_2[row*W+col];
+}
+
 /******************** ML Operators ********************/
 Tensor CUDABackend::reshape(const Tensor& lhs, const Shape& sh) {
     assert(0 && "not implemented");
@@ -166,11 +178,36 @@ Tensor CUDABackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
     return Tensor();
 }
 
-// TODO: Not yet implemented
 Tensor CUDABackend::add(const Tensor& lhs, const Tensor& rhs) {
     checkAddOrThrow(lhs, rhs);
-    assert(0 && "not implemented");
-    return Tensor();
+    
+    const dim_t H = lhs.shape()[0], W = lhs.shape()[1];
+
+    auto ptr = lhs.getGate<lt::CUDATensor>().data();
+    using PType = std::remove_pointer<decltype(ptr)>::type;
+    Tensor ret(
+        Tensor::zeros<PType>(
+            Shape{H, W})
+    );
+
+    dim3 threads_per_block(BLOCK_DIM, BLOCK_DIM);
+    dim3 blocks_per_grid(1, 1);
+    blocks_per_grid.x = std::ceil(static_cast<double>(W) /
+                            static_cast<double>(threads_per_block.x));
+    blocks_per_grid.y = std::ceil(static_cast<double>(H) /
+                            static_cast<double>(threads_per_block.y));
+    DBG_PRINT(blocks_per_grid, threads_per_block);
+
+    add_kernel<<<blocks_per_grid, threads_per_block>>>(
+        lhs.getGate<CUDATensor>().data(),
+        rhs.getGate<CUDATensor>().data(),
+        ret.getGate<CUDATensor>().data(),
+        H,
+        W
+    );
+
+    cudaDeviceSynchronize();
+    return ret;
 }
 
 // TODO: 
