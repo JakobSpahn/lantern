@@ -51,7 +51,40 @@ Tensor CUDATensor::index(const Shape& sh) const {
 }
 
 std::string CUDATensor::toString() const {
-    assert(0 && "not implemented");
+    std::stringstream ss;
+    ss << "tensor(";
+
+    auto cpy(sh.get());
+    auto ptr(cpy.begin());
+    auto data_ptr = arr_;
+
+    ss << "[";
+
+    while (true) {
+        if (*ptr <= 0) {
+            ss << "]" << (*(ptr - 1) == 0 || ptr == cpy.begin() ? "" : ", ");
+
+            if (ptr == cpy.begin()) {
+                break;
+            }
+
+            *ptr-- = *(sh.get().cbegin() + std::distance(cpy.begin(), ptr));
+
+        } else if (ptr != cpy.end() - 1) {
+            ss << "[";
+            (*ptr++)--;
+
+        } else {
+            for (size_t i = 0; i < *ptr; ++i) {
+                ss << *data_ptr++ << (i == *ptr - 1 ? "" : ", ");
+            }
+
+            *ptr = 0;
+        }
+    }
+
+    ss << ")";
+    return ss.str();
 }
 
 void CUDATensor::buff(void** out) const {
