@@ -1,9 +1,12 @@
 #include "include/lantern.h"
+#include "lantern/inference/Graph.h"
 
 #include <iostream>
 
 int main() {
-    executeGraph("../model/model.onnx","../mnist/testSample/img_1.jpg");
+    Graph g("../model/model.onnx");
+    g.executeGraph("../mnist/testSample/img_1.jpg");
+    //executeGraph("../model/model.onnx","../mnist/testSample/img_1.jpg");
     /*
     lt::manage::setDefaultGate<lt::CPUTensor>();
 

@@ -2,11 +2,11 @@
 
 #include <fstream>
 #include <vector>
-#include <onnx/onnx_pb.h>
-#include <onnx/onnx-operators_pb.h>
 #include <opencv2/opencv.hpp>
 
-void get_input(onnx::ModelProto &model, std::map<std::string, lt::Tensor*> &collector) 
+
+
+void Graph::getInput(onnx::ModelProto &model, std::map<std::string, lt::Tensor*> &collector) 
 {
     for(auto& in : model.graph().input())
     {        
@@ -30,7 +30,7 @@ void get_input(onnx::ModelProto &model, std::map<std::string, lt::Tensor*> &coll
     }
 }
 
-void get_weights(onnx::ModelProto &model, std::map<std::string, lt::Tensor*> &collector)
+void Graph::getWeights(onnx::ModelProto &model, std::map<std::string, lt::Tensor*> &collector)
 {
     for (auto& info : model.graph().initializer()) {
         lt::Shape dims;
@@ -72,7 +72,7 @@ void get_weights(onnx::ModelProto &model, std::map<std::string, lt::Tensor*> &co
 
 } 
 
-void load_image(lt::Tensor &input, std::string filepath)
+void Graph::loadImage(lt::Tensor &input, std::string filepath)
 {
     cv::Mat src = cv::imread(filepath, cv::IMREAD_GRAYSCALE);
     cv::Mat img;
@@ -87,7 +87,7 @@ void load_image(lt::Tensor &input, std::string filepath)
     input = lt::Tensor::fromVector<float>(buffer, input.shape());
 }
 
-void executeGraph(std::string modelPath, std::string imagePath)
+void Graph::executeGraph(std::string imagePath)
 {
     onnx::ModelProto model;
     std::ifstream in(modelPath, std::ios_base::binary);
@@ -96,11 +96,11 @@ void executeGraph(std::string modelPath, std::string imagePath)
 
     lt::manage::setDefaultGate<lt::CPUTensor>();
     std::map<std::string, lt::Tensor*> collector;
-    get_input(model, collector);
-    get_weights(model, collector);
+    getInput(model, collector);
+    getWeights(model, collector);
 
     lt::Tensor* input = collector[model.graph().input()[0].name()];
-    load_image(*input, imagePath);
+    loadImage(*input, imagePath);
     lt::Tensor ret;
 
     for (auto& nd_proto : model.graph().node())
