@@ -22,6 +22,11 @@ CUDATensor::CUDATensor(
     cudaMemcpy(arr_, dat, s.elements() * sizeof(data_t), cudaMemcpyDefault);
     cudaDeviceSynchronize();
 }
+
+CUDATensor::CUDATensor(
+        data_t* dat,
+        const Shape& s) 
+        : arr_(dat), sh(s) {}
     
 std::unique_ptr<TensorGate> CUDATensor::clone() {
     return std::make_unique<CUDATensor>(arr_, sh, lt::dtype::float32);

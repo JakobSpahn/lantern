@@ -126,9 +126,10 @@ __global__ void softmax_kernel(data_t* inp, data_t* outp, dim_t n) {
 Tensor CUDABackend::reshape(const Tensor& lhs, const Shape& sh) {
     assert(lhs.shape().elements() == sh.elements());
 
-    return Tensor(std::make_unique<CudaTensor>(
+    return Tensor(std::make_unique<CUDATensor>(
         lhs.getGate<CUDATensor>().data(), 
-        sh)); // shallow copy with different shape
+        sh
+    )); // shallow copy with different shape
 }
 
 Tensor CUDABackend::transpose(const Tensor& lhs, const Shape& sh) {

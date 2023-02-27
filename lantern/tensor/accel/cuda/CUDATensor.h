@@ -22,6 +22,11 @@ class CUDATensor : public TensorGate {
         const void* dat, 
         const Shape& s, 
         const lt::dtype dt);
+
+    // shallow copy of dat
+    CUDATensor(
+        data_t* dat,
+        const Shape& s);
     
     std::unique_ptr<TensorGate> clone() override;
     void assign(const Tensor& t) override;
