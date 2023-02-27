@@ -5,20 +5,19 @@
 
 int main() {
     lt::manage::setDefaultGate<lt::CPUTensor>();
+    std::cout << lt::manage::getDefaultGate() << std::endl;
     Graph g("../model/model.onnx");
     g.executeGraph("../mnist/testSample/img_1.jpg");
-    //executeGraph("../model/model.onnx","../mnist/testSample/img_1.jpg");
-    /*
-    lt::manage::setDefaultGate<lt::CPUTensor>();
 
+    lt::manage::setDefaultGate<lt::CUDATensor>();
+    
     lt::Tensor x(lt::Tensor::fromVector(
-        std::vector<float>({1,2,3,4,5,6,7,8,9,10}), 
-        lt::Shape{5,2}));
+        std::vector<float>({-6790.05, -6626.31, 6157.88, -6775.27, -3096.04, -9614.22, -7258.32, -5817.05, -6412.74, -7082.28}), 
+        lt::Shape{1,10}));
 
-    lt::Tensor y(lt::Tensor::fromVector(
-        std::vector<float>({1,2,3,4,5,6,7,8,9,10}), 
-        lt::Shape{5,2}));
+    auto res = lt::softmax(x);
 
-    std::cout << lt::add(x, y) << std::endl;
-    */
+    std::cout << res.toString() << std::endl;
+
+
 }

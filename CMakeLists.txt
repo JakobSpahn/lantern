@@ -53,6 +53,7 @@ add_executable(mainInference
                 ${core_sources}
                 ${accel_sources}
                 ${cpu_sources}
+                ${cuda_sources}
                 ${inference_sources}
                 )
 

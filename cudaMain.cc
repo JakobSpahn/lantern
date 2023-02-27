@@ -6,15 +6,19 @@
 #include <onnx/onnx-operators_pb.h>
 
 int main() {
+
     lt::manage::setDefaultGate<lt::CUDATensor>();
 
     lt::Tensor x(lt::Tensor::zeros<float>(
-        lt::Shape{1000000}
+        lt::Shape{10, 10}
     ));
     lt::Tensor y(lt::Tensor::zeros<float>(
-        lt::Shape{1000000}
+        lt::Shape{10, 10}
     ));
     lt::Tensor z(x);
+
+    lt::Tensor result = lt::matmul(x, y);
+    
 
     float* ptr_x = x.buff<float>();
     float* ptr_y = y.buff<float>();

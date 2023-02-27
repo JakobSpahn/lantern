@@ -150,6 +150,7 @@ void Graph::executeGraph(std::string imagePath)
             );
         } else if (op_name == "Softmax")
         {
+            std::cout << collector[inp[0]]->toString() << std::endl;
             ret = lt::softmax(
                 *collector[inp[0]]
             );
