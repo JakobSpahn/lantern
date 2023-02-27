@@ -115,7 +115,7 @@ __global__ void softmax_kernel(data_t* inp, data_t* outp, dim_t n) {
 
     if (i < n) {
         float sum = 0.0f;
-        for (int j = 0; j < size; j++) {
+        for (int j = 0; j < n; j++) {
             sum += expf(inp[j]);
         }
         outp[i] = expf(inp[i]) / sum;
@@ -284,7 +284,7 @@ Tensor CUDABackend::softmax(const Tensor& lhs) {
         lhs.getGate<CUDATensor>().data(),
         ret.getGate<CUDATensor>().data(),
         lhs.elements()
-    )
+    );
 
     cudaDeviceSynchronize();
 
