@@ -97,6 +97,7 @@ __global__ void add_kernel(data_t const* inp_1, data_t const* inp_2, data_t* out
     outp[row*W+col] = inp_1[row*W+col] + inp_2[row*W+col];
 }
 
+// Or use fmaxf
 __global__ void relu_kernel(data_t const* inp, data_t* outp, dim_t n) {
     dim_t i{blockIdx.x * blockDim.x + threadIdx.x};
 
@@ -106,6 +107,18 @@ __global__ void relu_kernel(data_t const* inp, data_t* outp, dim_t n) {
         } else {
             outp[i] = inp[i];
         }
+    }
+}
+
+__global__ void softmax_kernel(data_t* inp, data_t* outp, dim_t n) {
+    dim_t i{blockIdx.x * blockDim.x + threadIdx.x};
+
+    if (i < n) {
+        float sum = 0.0f;
+        for (int j = 0; j < size; j++) {
+            sum += expf(inp[j]);
+        }
+        outp[i] = expf(inp[i]) / sum;
     }
 }
 
@@ -252,8 +265,30 @@ Tensor CUDABackend::relu(const Tensor& lhs) {
 
 // TODO: 
 Tensor CUDABackend::softmax(const Tensor& lhs) {
-    assert(0 && "not implemented");
-    return Tensor();
+    checkSoftmaxOrThrow(lhs);
+
+    auto ptr = lhs.getGate<lt::CUDATensor>().data();
+    using PType = std::remove_pointer<decltype(ptr)>::type;
+    Tensor ret(
+        Tensor::zeros<PType>(
+            lhs.shape())
+    );
+
+    dim3 threads_per_block(BLOCK_DIM);
+    dim3 blocks_per_grid(1);
+    blocks_per_grid.x = std::ceil(static_cast<double>(lhs.elements()) /
+                            static_cast<double>(threads_per_block.x));
+    DBG_PRINT(blocks_per_grid, threads_per_block);
+    
+    softmax_kernel<<<blocks_per_grid, threads_per_block>>>(
+        lhs.getGate<CUDATensor>().data(),
+        ret.getGate<CUDATensor>().data(),
+        lhs.elements()
+    )
+
+    cudaDeviceSynchronize();
+
+    return ret;
 }
 
 }
