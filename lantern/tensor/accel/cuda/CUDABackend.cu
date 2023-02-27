@@ -114,11 +114,21 @@ __global__ void softmax_kernel(data_t* inp, data_t* outp, dim_t n) {
     dim_t i{blockIdx.x * blockDim.x + threadIdx.x};
 
     if (i < n) {
+
+        float tmp = inp[0];
+        for (int j = 0; j < n; j++) {
+            if (inp[j] > tmp) {
+                tmp = inp[j];
+            }
+        }
+
         float sum = 0.0f;
         for (int j = 0; j < n; j++) {
-            sum += expf(inp[j]);
+            sum += expf(inp[j] - tmp);
         }
-        outp[i] = expf(inp[i]) / sum;
+
+        float offset = tmp + logf(sum);
+        outp[i] = expf(inp[i] - offset);
     }
 }
 
