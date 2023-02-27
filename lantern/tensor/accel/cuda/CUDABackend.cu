@@ -122,6 +122,27 @@ __global__ void softmax_kernel(data_t* inp, data_t* outp, dim_t n) {
     }
 }
 
+__global__ void max_pool2d_kernel(data_t* inp, data_t* outp, dim_t input_rows, dim_t input_cols, dim_t kernel_rows, dim_t kernel_cols, dim_t max_val) {
+    int batch = blockIdx.x;
+    int channel = blockIdx.y;
+    int output_row = threadIdx.x;
+    int output_col = threadIdx.y;
+    int input_row = output_row * kernel_rows;
+    int input_col = output_col * kernel_cols;
+
+    for (int i = 0; i < kernel_rows; i++) {
+        for (int j = 0; j < kernel_cols; j++) {
+            max_val = fmaxf(
+                max_val,
+                inp[batch * input_rows * input_cols + channel * input_rows * input_cols + (input_row + i) * input_cols + input_col + j]
+            );
+        }
+    }
+
+
+    outp[batch * (input_rows / kernel_rows) * (input_cols / kernel_cols) + channel * (input_rows / kernel_rows) * (input_cols / kernel_cols) + output_row * (input_cols / kernel_cols) + output_col] = max_val;
+}
+
 /******************** ML Operators ********************/
 Tensor CUDABackend::reshape(const Tensor& lhs, const Shape& sh) {
     assert(lhs.shape().elements() == sh.elements());
@@ -203,8 +224,36 @@ Tensor CUDABackend::conv2d(const Tensor& lhs, const Tensor& k, const Tensor& b) 
 
 Tensor CUDABackend::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
     checkMaxPoolOrThrow(lhs, k_sh);
-    assert(0 && "not implemented");
-    return Tensor();
+    const dim_t N = lhs.shape()[0], C = lhs.shape()[1], H = lhs.shape()[2], W = lhs.shape()[3];
+    const dim_t H_NEW = H / k_sh[0], W_NEW = W / k_sh[0];
+    const dim_t stride = k_sh[0];
+
+ 
+    float max_val = -std::numeric_limits<float>::max();
+    auto ptr = lhs.getGate<lt::CUDATensor>().data();
+    using PType = std::remove_pointer<decltype(ptr)>::type;
+    Tensor ret(
+        Tensor::zeros<PType>(
+            Shape{N, C, H_NEW, W_NEW})
+        );
+
+    dim3 threads_per_block(N, C);
+    dim3 blocks_per_grid(H_NEW, W_NEW);
+    DBG_PRINT(blocks_per_grid, threads_per_block);
+
+    max_pool2d_kernel<<<threads_per_block, blocks_per_grid>>>(
+        lhs.getGate<CUDATensor>().data(),
+        ret.getGate<CUDATensor>().data(),
+        H,
+        W,
+        k_sh[0],
+        k_sh[1],
+        max_val
+    );
+
+    cudaDeviceSynchronize();
+    
+    return ret;
 }
 
 Tensor CUDABackend::add(const Tensor& lhs, const Tensor& rhs) {
@@ -239,7 +288,6 @@ Tensor CUDABackend::add(const Tensor& lhs, const Tensor& rhs) {
     return ret;
 }
 
-// TODO: 
 Tensor CUDABackend::relu(const Tensor& lhs) {
     checkReluOrThrow(lhs);
 
@@ -267,7 +315,6 @@ Tensor CUDABackend::relu(const Tensor& lhs) {
     return ret;
 }
 
-// TODO: 
 Tensor CUDABackend::softmax(const Tensor& lhs) {
     checkSoftmaxOrThrow(lhs);
 
