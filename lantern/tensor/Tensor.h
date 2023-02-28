@@ -2,7 +2,7 @@
 
 #include "lantern/tensor/Shape.h"
 #include "lantern/tensor/Types.h"
-#include "Util.h
+#include "Util.h"
 
 #include <memory>
 #include <ostream>
