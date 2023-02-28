@@ -2,6 +2,7 @@
 
 #include "lantern/tensor/Shape.h"
 #include "lantern/tensor/Types.h"
+#include "Util.h
 
 #include <memory>
 #include <ostream>
@@ -143,6 +144,11 @@ class Tensor {
     template <typename T>
     static Tensor zeros(const Shape& sh) {
         return fromVector(std::vector<T>(sh.elements(), 0), sh);
+    }
+
+    template <typename T>
+    static Tensor randn(const Shape& sh) {
+        return fromVector(randVec<T>(sh.elements()), sh);
     }
 
     /**
