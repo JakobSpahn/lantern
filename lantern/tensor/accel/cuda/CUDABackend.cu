@@ -152,11 +152,15 @@ namespace lt {
          output_row * (input_cols / kernel_cols) + output_col] = max_val;      \
   }
 
-LT_SPECIFY_CUDA_KERNELS_MM(float)
-LT_SPECIFY_CUDA_KERNELS_CONV2D(float)
-LT_SPECIFY_CUDA_KERNELS_ADD(float)
-LT_SPECIFY_CUDA_KERNELS_RELU(float)
-LT_SPECIFY_CUDA_KERNELS_SOFTMAX(float)
-LT_SPECIFY_CUDA_KERNELS_POOL2D(float)
+#define LT_SPECIFY_CUDA_KERNELS(TYPE)                                          \
+  LT_SPECIFY_CUDA_KERNELS_MM(TYPE)                                             \
+  LT_SPECIFY_CUDA_KERNELS_CONV2D(TYPE)                                         \
+  LT_SPECIFY_CUDA_KERNELS_ADD(TYPE)                                            \
+  LT_SPECIFY_CUDA_KERNELS_RELU(TYPE)                                           \
+  LT_SPECIFY_CUDA_KERNELS_SOFTMAX(TYPE)                                        \
+  LT_SPECIFY_CUDA_KERNELS_POOL2D(TYPE)
+
+LT_SPECIFY_CUDA_KERNELS(double)
+LT_SPECIFY_CUDA_KERNELS(float)
 
 } // namespace lt

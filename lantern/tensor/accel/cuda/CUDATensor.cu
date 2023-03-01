@@ -54,6 +54,7 @@ Tensor CUDATensor::shallowCopy() {
 TensorBackend& CUDATensor::backend() const {
 	std::cout << getTypeName(dt) << std::endl;
 	switch(dt) {
+                case dtype::float64: return CUDABackend<double>::getInstance();
 		case dtype::float32: return CUDABackend<float>::getInstance();
 		default:
 			throw std::invalid_argument("dtype not implemented");

@@ -9,10 +9,10 @@ int main() {
 
     lt::manage::setDefaultGate<lt::CUDATensor>();
 
-    lt::Tensor x(lt::Tensor::randn<float>(
+    lt::Tensor x(lt::Tensor::randn<double>(
         lt::Shape{10, 10}
     ));
-    lt::Tensor y(lt::Tensor::randn<float>(
+    lt::Tensor y(lt::Tensor::randn<double>(
         lt::Shape{10, 10}
     ));
     lt::Tensor z(x);
@@ -20,9 +20,9 @@ int main() {
 
     lt::Tensor result = lt::matmul(x, y);
 
-    float* ptr_x = x.buff<float>();
-    float* ptr_y = y.buff<float>();
-    float* ptr_z = z.buff<float>();
+    auto ptr_x = x.buff<double>();
+    auto ptr_y = y.buff<double>();
+    auto ptr_z = z.buff<double>();
 
     *ptr_x = 1;
 

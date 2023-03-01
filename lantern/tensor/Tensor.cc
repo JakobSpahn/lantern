@@ -56,6 +56,7 @@ TYPE* Tensor::buff() const {                        \
     gate_->buff(tmp);                               \
     return ret;                                     \
 }
+LT_SPECIFY_OPS(double);
 LT_SPECIFY_OPS(float);
 
 /******************** UTILITY ********************/
