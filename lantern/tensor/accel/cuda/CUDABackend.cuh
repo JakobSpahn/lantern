@@ -1,9 +1,11 @@
 #pragma once
 
 #include <cassert>
+#include <sstream>
 #include "lantern/tensor/TensorBackend.h"
 #include "lantern/tensor/accel/cuda/CUDATensor.h"
 #include "lantern/tensor/accel/RuntimeCheck.h"
+#include "lantern/tensor/Types.h"
 
 static void DBG_PRINT(const dim3& blocks_per_grid, const dim3& threads_per_block) {
 #ifdef DEBUG
@@ -21,16 +23,25 @@ static void DBG_PRINT(const dim3& blocks_per_grid, const dim3& threads_per_block
 
 namespace lt {
 #define BLOCK_DIM 32
-__global__ void mm_kernel(data_t const* mat_1, data_t const* mat_2, data_t* mat_3, size_t m,
+template <class T>
+__global__ void mm_kernel(T const* mat_1, T const* mat_2, T* mat_3, size_t m,
 						  size_t n, size_t p);
-__global__ void batched_channeled_conv2d_hw_kernel(data_t const* inp, data_t const* kernel, data_t* outp,
+template <class T>
+__global__ void batched_channeled_conv2d_hw_kernel(T const* inp, T const* kernel, T* outp,
 												   dim_t b_s, dim_t OUT_C, dim_t IN_C,
 												   dim_t H_OLD, dim_t W_OLD,
 												   dim_t H_NEW, dim_t W_NEW, dim_t K_HW);
-__global__ void add_kernel(data_t const* inp_1, data_t const* inp_2, data_t* outp, dim_t H, dim_t W);
-__global__ void relu_kernel(data_t const* inp, data_t* outp, dim_t n);
-__global__ void softmax_kernel(data_t* inp, data_t* outp, dim_t n);
-__global__ void max_pool2d_kernel(data_t* inp, data_t* outp, dim_t input_rows, dim_t input_cols, dim_t kernel_rows, dim_t kernel_cols, dim_t max_val);
+template <class T>
+__global__ void add_kernel(T const* inp_1, T const* inp_2, T* outp, dim_t H, dim_t W);
+
+template <class T>
+__global__ void relu_kernel(T const* inp, T* outp, dim_t n);
+
+template <class T>
+__global__ void softmax_kernel(T* inp, T* outp, dim_t n);
+
+template <class T>
+__global__ void max_pool2d_kernel(T* inp, T* outp, dim_t input_rows, dim_t input_cols, dim_t kernel_rows, dim_t kernel_cols, dim_t max_val);
 
 template <class T>
 class CUDABackend : public lt::TensorBackend {
@@ -38,7 +49,9 @@ class CUDABackend : public lt::TensorBackend {
     CUDABackend() = default;
     ~CUDABackend() = default;
 
-    static CUDABackend& getInstance(); 
+    static CUDABackend& getInstance();
+
+	std::string stringify(const Tensor& t) override;
 
     /******************** ML Operators ********************/
     Tensor reshape(const Tensor& lhs, const Shape& sh);
@@ -57,14 +70,53 @@ CUDABackend<T>& CUDABackend<T>::getInstance() {
 	return instance;
 }
 
+template <class T>
+std::string CUDABackend<T>::stringify(const Tensor& t) {
+	std::stringstream ss;
+	ss << "tensor(";
+
+	auto cpy(t.shape().get());
+	auto ptr(cpy.begin());
+	auto data_ptr = t.template getGate<CUDATensor>().template data<T>();
+
+	ss << "[";
+
+	while (true) {
+		if (*ptr <= 0) {
+			ss << "]" << (*(ptr - 1) == 0 || ptr == cpy.begin() ? "" : ", ");
+
+			if (ptr == cpy.begin()) {
+				break;
+			}
+
+			*ptr-- = *(t.shape().get().cbegin() + std::distance(cpy.begin(), ptr));
+
+		} else if (ptr != cpy.end() - 1) {
+			ss << "[";
+			(*ptr++)--;
+
+		} else {
+			for (size_t i = 0; i < *ptr; ++i) {
+				ss << *data_ptr++ << (i == *ptr - 1 ? "" : ", ");
+			}
+
+			*ptr = 0;
+		}
+	}
+
+	ss << ")";
+	return ss.str();
+}
+
 /******************** ML Operators ********************/
 template <class T>
 Tensor CUDABackend<T>::reshape(const Tensor& lhs, const Shape& sh) {
 	assert(lhs.shape().elements() == sh.elements());
 
 	return Tensor(std::make_unique<CUDATensor>(
-		lhs.getGate<CUDATensor>().data(),
-		sh
+		lhs.getGate<CUDATensor>().data<T>(),
+		sh,
+		getType<T>()
 	)); // shallow copy with different shape
 }
 
@@ -79,10 +131,9 @@ Tensor CUDABackend<T>::matmul(const Tensor& lhs, const Tensor& rhs) {
 	checkMatmulOrThrow(lhs, rhs);
 
 	// get zero initialized result tensor
-	auto ptr = lhs.getGate<lt::CUDATensor>().data();
-	using PType = std::remove_pointer<decltype(ptr)>::type;
+	auto ptr = lhs.getGate<lt::CUDATensor>().data<T>();
 	Tensor ret(
-		Tensor::zeros<PType>(
+		Tensor::zeros<T>(
 			Shape{lhs.shape()[0], rhs.shape()[1]})
 	);
 	size_t m(lhs.shape()[0]), n(lhs.shape()[1]), p(rhs.shape()[1]);
@@ -95,9 +146,9 @@ Tensor CUDABackend<T>::matmul(const Tensor& lhs, const Tensor& rhs) {
 		static_cast<double>(threads_per_block.y));
 	DBG_PRINT(blocks_per_grid, threads_per_block);
 
-	mm_kernel<<<blocks_per_grid, threads_per_block>>>(lhs.getGate<lt::CUDATensor>().data(),
-													  rhs.getGate<lt::CUDATensor>().data(),
-													  ret.getGate<lt::CUDATensor>().data(), m, n, p);
+	mm_kernel<<<blocks_per_grid, threads_per_block>>>(lhs.getGate<lt::CUDATensor>().data<T>(),
+													  rhs.getGate<lt::CUDATensor>().data<T>(),
+													  ret.getGate<lt::CUDATensor>().data<T>(), m, n, p);
 	cudaDeviceSynchronize();
 
 	return ret;
@@ -113,10 +164,9 @@ Tensor CUDABackend<T>::conv2d(const Tensor& lhs, const Tensor& k, const Tensor& 
 
 	// zero initialize tensor with new shape (N,OUT_C,H_NEW,W_NEW)
 	// get zero initialized result tensor
-	auto ptr = lhs.getGate<lt::CUDATensor>().data();
-	using PType = std::remove_pointer<decltype(ptr)>::type;
+	auto ptr = lhs.getGate<lt::CUDATensor>().data<T>();
 	Tensor ret(
-		Tensor::zeros<PType>(
+		Tensor::zeros<T>(
 			Shape{N, OUT_C, H_NEW, W_NEW})
 	);
 
@@ -129,9 +179,9 @@ Tensor CUDABackend<T>::conv2d(const Tensor& lhs, const Tensor& k, const Tensor& 
 	DBG_PRINT(blocks_per_grid, threads_per_block);
 
 	batched_channeled_conv2d_hw_kernel<<<blocks_per_grid, threads_per_block>>>(
-		lhs.getGate<CUDATensor>().data(),
-		k.getGate<CUDATensor>().data(),
-		ret.getGate<CUDATensor>().data(),
+		lhs.getGate<CUDATensor>().data<T>(),
+		k.getGate<CUDATensor>().data<T>(),
+		ret.getGate<CUDATensor>().data<T>(),
 		N, OUT_C, IN_C,
 		H_OLD, W_OLD,
 		H_NEW, W_NEW, K_HW);
@@ -149,10 +199,9 @@ Tensor CUDABackend<T>::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
 
 
 	float max_val = -std::numeric_limits<float>::max();
-	auto ptr = lhs.getGate<lt::CUDATensor>().data();
-	using PType = std::remove_pointer<decltype(ptr)>::type;
+	auto ptr = lhs.getGate<lt::CUDATensor>().data<T>();
 	Tensor ret(
-		Tensor::zeros<PType>(
+		Tensor::zeros<T>(
 			Shape{N, C, H_NEW, W_NEW})
 	);
 
@@ -161,8 +210,8 @@ Tensor CUDABackend<T>::max_pool2d(const Tensor& lhs, const Shape& k_sh) {
 	DBG_PRINT(blocks_per_grid, threads_per_block);
 
 	max_pool2d_kernel<<<threads_per_block, blocks_per_grid>>>(
-		lhs.getGate<CUDATensor>().data(),
-		ret.getGate<CUDATensor>().data(),
+		lhs.getGate<CUDATensor>().data<T>(),
+		ret.getGate<CUDATensor>().data<T>(),
 		H,
 		W,
 		k_sh[0],
@@ -181,10 +230,9 @@ Tensor CUDABackend<T>::add(const Tensor& lhs, const Tensor& rhs) {
 
 	const dim_t H = lhs.shape()[0], W = lhs.shape()[1];
 
-	auto ptr = lhs.getGate<lt::CUDATensor>().data();
-	using PType = std::remove_pointer<decltype(ptr)>::type;
+	auto ptr = lhs.getGate<lt::CUDATensor>().data<T>();
 	Tensor ret(
-		Tensor::zeros<PType>(
+		Tensor::zeros<T>(
 			Shape{H, W})
 	);
 
@@ -197,9 +245,9 @@ Tensor CUDABackend<T>::add(const Tensor& lhs, const Tensor& rhs) {
 	DBG_PRINT(blocks_per_grid, threads_per_block);
 
 	add_kernel<<<blocks_per_grid, threads_per_block>>>(
-		lhs.getGate<CUDATensor>().data(),
-		rhs.getGate<CUDATensor>().data(),
-		ret.getGate<CUDATensor>().data(),
+		lhs.getGate<CUDATensor>().data<T>(),
+		rhs.getGate<CUDATensor>().data<T>(),
+		ret.getGate<CUDATensor>().data<T>(),
 		H,
 		W
 	);
@@ -212,10 +260,9 @@ template <class T>
 Tensor CUDABackend<T>::relu(const Tensor& lhs) {
 	checkReluOrThrow(lhs);
 
-	auto ptr = lhs.getGate<lt::CUDATensor>().data();
-	using PType = std::remove_pointer<decltype(ptr)>::type;
+	auto ptr = lhs.getGate<lt::CUDATensor>().data<T>();
 	Tensor ret(
-		Tensor::zeros<PType>(
+		Tensor::zeros<T>(
 			lhs.shape())
 	);
 
@@ -226,8 +273,8 @@ Tensor CUDABackend<T>::relu(const Tensor& lhs) {
 	DBG_PRINT(blocks_per_grid, threads_per_block);
 
 	relu_kernel<<<blocks_per_grid, threads_per_block>>>(
-		lhs.getGate<CUDATensor>().data(),
-		ret.getGate<CUDATensor>().data(),
+		lhs.getGate<CUDATensor>().data<T>(),
+		ret.getGate<CUDATensor>().data<T>(),
 		lhs.elements()
 	);
 
@@ -240,10 +287,9 @@ template <class T>
 Tensor CUDABackend<T>::softmax(const Tensor& lhs) {
 	checkSoftmaxOrThrow(lhs);
 
-	auto ptr = lhs.getGate<lt::CUDATensor>().data();
-	using PType = std::remove_pointer<decltype(ptr)>::type;
+	T* ptr = lhs.getGate<lt::CUDATensor>().data<T>();
 	Tensor ret(
-		Tensor::zeros<PType>(
+		Tensor::zeros<T>(
 			lhs.shape())
 	);
 
@@ -254,8 +300,8 @@ Tensor CUDABackend<T>::softmax(const Tensor& lhs) {
 	DBG_PRINT(blocks_per_grid, threads_per_block);
 
 	softmax_kernel<<<blocks_per_grid, threads_per_block>>>(
-		lhs.getGate<CUDATensor>().data(),
-		ret.getGate<CUDATensor>().data(),
+		lhs.getGate<CUDATensor>().data<T>(),
+		ret.getGate<CUDATensor>().data<T>(),
 		lhs.elements()
 	);
 

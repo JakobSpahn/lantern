@@ -80,4 +80,9 @@ dtype nameToType(const std::string& n);
  */
 size_t getTypeSize(const dtype t);
 
+template <typename T>
+dtype getType() {
+	return dtypeMapping<T>::lt_type;
+}
+
 } // namespace lt

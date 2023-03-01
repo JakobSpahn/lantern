@@ -11,7 +11,7 @@ using data_t = float;
 
 class CUDATensor : public TensorGate {
  private:
-    data_t* arr_;
+    void* arr_;
     Shape sh;
 	dtype dt;
 
@@ -26,7 +26,7 @@ class CUDATensor : public TensorGate {
 
     // shallow copy of dat
     CUDATensor(
-        data_t* dat,
+        void* dat,
         const Shape& s);
     
     std::unique_ptr<TensorGate> clone() override;
@@ -44,8 +44,15 @@ class CUDATensor : public TensorGate {
 
     void buff(void** out) const override;
 
-    data_t* data();
-    const data_t* data() const;
+	template <class T>
+    T* data() {
+		return static_cast<T*>(arr_);
+	}
+
+	template<class T>
+    const T* data() const {
+		return static_cast<T*>(arr_);
+	}
 };
 
 }  // namespace lt

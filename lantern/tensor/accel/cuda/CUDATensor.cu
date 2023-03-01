@@ -2,10 +2,15 @@
 
 #include "lantern/tensor/accel/cuda/CUDABackend.cuh"
 
+#include "lantern/tensor/Types.h"
+
 #include <string>
 #include <cassert>
 #include <sstream>
 #include <memory>
+#include <iostream>
+
+#include "lantern/tensor/Types.h"
 
 namespace lt {
 
@@ -18,13 +23,13 @@ CUDATensor::CUDATensor(
     const Shape& s, 
     const lt::dtype dt) 
     : sh(s), dt(dt) {
-    cudaMallocManaged(&arr_, s.elements() * sizeof(data_t));
-    cudaMemcpy(arr_, dat, s.elements() * sizeof(data_t), cudaMemcpyDefault);
+    cudaMallocManaged(&arr_, s.elements() * getTypeSize(dt));
+    cudaMemcpy(arr_, dat, s.elements() * getTypeSize(dt), cudaMemcpyDefault);
     cudaDeviceSynchronize();
 }
 
 CUDATensor::CUDATensor(
-        data_t* dat,
+        void* dat,
         const Shape& s) 
         : arr_(dat), sh(s) {}
     
@@ -47,9 +52,12 @@ Tensor CUDATensor::shallowCopy() {
 }
 
 TensorBackend& CUDATensor::backend() const {
+	std::cout << getTypeName(dt) << std::endl;
 	switch(dt) {
 		case dtype::float32: return CUDABackend<float>::getInstance();
-		default: assert(0 && "type not supported");
+		default:
+			throw std::invalid_argument("dtype not implemented");
+			break;
 	}
 	// should never reach
     return CUDABackend<float>::getInstance();
@@ -65,52 +73,11 @@ Tensor CUDATensor::index(const Shape& sh) const {
 }
 
 std::string CUDATensor::toString() const {
-    std::stringstream ss;
-    ss << "tensor(";
-
-    auto cpy(sh.get());
-    auto ptr(cpy.begin());
-    auto data_ptr = arr_;
-
-    ss << "[";
-
-    while (true) {
-        if (*ptr <= 0) {
-            ss << "]" << (*(ptr - 1) == 0 || ptr == cpy.begin() ? "" : ", ");
-
-            if (ptr == cpy.begin()) {
-                break;
-            }
-
-            *ptr-- = *(sh.get().cbegin() + std::distance(cpy.begin(), ptr));
-
-        } else if (ptr != cpy.end() - 1) {
-            ss << "[";
-            (*ptr++)--;
-
-        } else {
-            for (size_t i = 0; i < *ptr; ++i) {
-                ss << *data_ptr++ << (i == *ptr - 1 ? "" : ", ");
-            }
-
-            *ptr = 0;
-        }
-    }
-
-    ss << ")";
-    return ss.str();
+    assert(0 && "deprecated");
+	return "";
 }
 
 void CUDATensor::buff(void** out) const {
     *out = arr_;
 }
-
-data_t* CUDATensor::data() {
-    return arr_;
-}
-
-const data_t* CUDATensor::data() const {
-    return arr_;
-}
-
 }  // namespace lt

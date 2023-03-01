@@ -10,6 +10,8 @@ class TensorBackend {
     TensorBackend() = default;
     virtual ~TensorBackend() = default;
 
+	virtual std::string stringify(const Tensor& t) = 0;
+
     /******************** ML Operators ********************/
     virtual Tensor reshape(const Tensor& lhs, const Shape& sh) = 0;
     virtual Tensor transpose(const Tensor& lhs, const Shape& sh) = 0;

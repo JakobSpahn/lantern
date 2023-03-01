@@ -68,7 +68,7 @@ Tensor Tensor::index(const Shape& sh) const {
 }
 
 std::string Tensor::toString() const {
-    return gate_->toString();
+    return gate_->backend().stringify(*this);
 }
 
 bool Tensor::isEmpty() const {
