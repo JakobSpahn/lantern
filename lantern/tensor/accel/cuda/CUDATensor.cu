@@ -1,6 +1,6 @@
 #include "lantern/tensor/accel/cuda/CUDATensor.h"
 
-#include "lantern/tensor/accel/cuda/CUDABackend.h"
+#include "lantern/tensor/accel/cuda/CUDABackend.cuh"
 
 #include <string>
 #include <cassert>
@@ -17,7 +17,7 @@ CUDATensor::CUDATensor(
     const void* dat, 
     const Shape& s, 
     const lt::dtype dt) 
-    : sh(s) {
+    : sh(s), dt(dt) {
     cudaMallocManaged(&arr_, s.elements() * sizeof(data_t));
     cudaMemcpy(arr_, dat, s.elements() * sizeof(data_t), cudaMemcpyDefault);
     cudaDeviceSynchronize();
@@ -29,7 +29,7 @@ CUDATensor::CUDATensor(
         : arr_(dat), sh(s) {}
     
 std::unique_ptr<TensorGate> CUDATensor::clone() {
-    return std::make_unique<CUDATensor>(arr_, sh, lt::dtype::float32);
+    return std::make_unique<CUDATensor>(arr_, sh, dt);
 }
 
 void CUDATensor::assign(const Tensor& t) {
@@ -47,7 +47,12 @@ Tensor CUDATensor::shallowCopy() {
 }
 
 TensorBackend& CUDATensor::backend() const {
-    return CUDABackend::getInstance();
+	switch(dt) {
+		case dtype::float32: return CUDABackend<float>::getInstance();
+		default: assert(0 && "type not supported");
+	}
+	// should never reach
+    return CUDABackend<float>::getInstance();
 }
 
 const Shape& CUDATensor::shape() const {

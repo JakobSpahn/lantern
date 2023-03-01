@@ -13,6 +13,7 @@ class CUDATensor : public TensorGate {
  private:
     data_t* arr_;
     Shape sh;
+	dtype dt;
 
  public:
     CUDATensor() = default;

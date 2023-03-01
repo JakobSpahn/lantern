@@ -2,23 +2,23 @@
 #include "include/lantern.h"
 
 #include <iostream>
-#include <onnx/onnx_pb.h>
-#include <onnx/onnx-operators_pb.h>
+// #include <onnx/onnx_pb.h>
+// #include <onnx/onnx-operators_pb.h>
 
 int main() {
 
     lt::manage::setDefaultGate<lt::CUDATensor>();
 
-    lt::Tensor x(lt::Tensor::zeros<float>(
+    lt::Tensor x(lt::Tensor::randn<float>(
         lt::Shape{10, 10}
     ));
-    lt::Tensor y(lt::Tensor::zeros<float>(
+    lt::Tensor y(lt::Tensor::randn<float>(
         lt::Shape{10, 10}
     ));
     lt::Tensor z(x);
 
+
     lt::Tensor result = lt::matmul(x, y);
-    
 
     float* ptr_x = x.buff<float>();
     float* ptr_y = y.buff<float>();
@@ -29,6 +29,11 @@ int main() {
     std::cout << *ptr_x << std::endl;
     std::cout << *ptr_y << std::endl;
     std::cout << *ptr_z << std::endl;
+
+	std::cout << x << std::endl;
+	std::cout << z << std::endl;
+	std::cout << y << std::endl;
+	std::cout << result << std::endl;
 
     /*
     // test for memory leak

@@ -10,7 +10,7 @@ set(CMAKE_CUDA_STANDARD 17)
 set(CMAKE_CUDA_STANDARD_REQUIRED TRUE)
 
 
-add_subdirectory(./onnx)
+#add_subdirectory(./onnx)
 
 find_package( OpenCV REQUIRED )
 include_directories( ${OpenCV_INCLUDE_DIRS} )
@@ -22,7 +22,8 @@ set(inference_sources lantern/inference/Graph.cc)
 set(core_sources lantern/tensor/Factory.cc
                 lantern/tensor/Shape.cc
                 lantern/tensor/Tensor.cc
-                lantern/tensor/Types.cc)
+                lantern/tensor/Types.cc
+                lantern/tensor/Util.cc)
 set(accel_sources lantern/tensor/accel/RuntimeCheck.cc) # this will be changed later on
 set(cpu_sources lantern/tensor/accel/rawcpu/CPUBackend.cc
                 lantern/tensor/accel/rawcpu/CPUTensor.cc)
@@ -82,7 +83,8 @@ endif()
 #find_package(OpenMP REQUIRED)
 #target_link_libraries(ops PRIVATE OpenMP::OpenMP_CXX)
 
-target_link_libraries(cudaMain PRIVATE onnx)
-target_link_libraries(mainInference PRIVATE onnx ${OpenCV_LIBS})
+
+#target_link_libraries(cudaMain PRIVATE onnx)
+#target_link_libraries(mainInference PRIVATE onnx ${OpenCV_LIBS})
 
 include_directories(${CMAKE_SOURCE_DIR})
