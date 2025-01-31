@@ -1,1 +1,3 @@
-# coredl
+# Lantern
+
+ML-Inference lib
